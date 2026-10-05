@@ -152,4 +152,4 @@ main          ← stable releases only (merge from dev at phase deadlines)
 
 ## License
 
-This is a student project for COMP5424 Extended Reality at HKU. All content is fictional or uses placeholder material as permitted by the scenario description.
+This is a student project for COMP5424 Extended Reality at polyu. All content is fictional or uses placeholder material as permitted by the scenario description.
