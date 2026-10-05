@@ -92,16 +92,16 @@ Assets/
 
 ## Team
 
-| Member | Branch | Suggested focus (TBD by team) |
-|--------|--------|-------------------------------|
-| Wang Jingyi | wjy_xr | Interaction / requirements analysis |
-| Wan Yuhang | wyh_xr | Ship model / prioritisation |
-| Chen Siyu | csy_xr | TBD |
-| Zhou Xinhao | zxh_xr | Scene build / prototype |
-| Huang Mina | hmn_xr | Timeline / project management |
-| Zhang Zhixing | zzx_xr | Audio / feasibility / docs |
+| Member | Branch |
+|--------|--------|
+| Wang Jingyi | wjy_xr |
+| Wan Yuhang | wyh_xr |
+| Chen Siyu | csy_xr |
+| Zhou Xinhao | zxh_xr |
+| Huang Mina | hmn_xr |
+| Zhang Zhixing | zzx_xr |
 
-> **Note**: Specific task assignments will be decided by the team. The suggestions above are based on Phase 1 roles and are not final.
+> **Note**: Task assignments are TBD — to be decided by the team. See `Docs/Phase2_GitWorkflow_and_TaskAssignment.md` for suggested task modules (P1–P6).
 
 ## Git Workflow
 
