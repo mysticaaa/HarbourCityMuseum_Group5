@@ -35,7 +35,7 @@ public class RaycastSelector : MonoBehaviour
 
     [Header("Fallback (Non-VR Testing)")]
     [Tooltip("Enable mouse-based ray for testing without headset")]
-    [SerializeField] private bool enableMouseFallback = true;
+    public bool enableMouseFallback = true;
     [SerializeField] private KeyCode mouseSelectKey = KeyCode.Mouse0;
 
     // Components
