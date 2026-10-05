@@ -92,14 +92,16 @@ Assets/
 
 ## Team
 
-| Member | Role | Branch |
-|--------|------|--------|
-| Wang Jingyi | Interaction (Ray Selection) | wjy_xr |
-| Wan Yuhang | Ship Model | wyh_xr |
-| Chen Siyu | Diving Helmet | csy_xr |
-| Zhou Xinhao | Scene Build | zxh_xr |
-| Huang Mina | Timeline + Project Management | hmn_xr |
-| Zhang Zhixing | Audio + Technical Documentation | zzx_xr |
+| Member | Branch | Suggested focus (TBD by team) |
+|--------|--------|-------------------------------|
+| Wang Jingyi | wjy_xr | Interaction / requirements analysis |
+| Wan Yuhang | wyh_xr | Ship model / prioritisation |
+| Chen Siyu | csy_xr | TBD |
+| Zhou Xinhao | zxh_xr | Scene build / prototype |
+| Huang Mina | hmn_xr | Timeline / project management |
+| Zhang Zhixing | zzx_xr | Audio / feasibility / docs |
+
+> **Note**: Specific task assignments will be decided by the team. The suggestions above are based on Phase 1 roles and are not final.
 
 ## Git Workflow
 
