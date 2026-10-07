@@ -5,7 +5,7 @@
       "app_key": "application.generated.unity.week2tut.exe",
       "launch_type": "url",
       "url": "steam://launch/",
-      "action_manifest_path": "D:\\workplace\\Unity Projects\\Week2TuT\\Assets\\StreamingAssets\\SteamVR\\actions.json",
+      "action_manifest_path": "D:\\HarbourCityMuseum_Group5\\HarbourCityMuseum_Group5\\Assets\\StreamingAssets\\SteamVR\\actions.json",
       "strings": {
         "en_us": {
           "name": "Week2TuT [Testing]"
