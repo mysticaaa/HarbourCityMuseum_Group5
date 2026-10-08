@@ -89,7 +89,7 @@ public class FollowViewUI : MonoBehaviour
         transform.position = Vector3.Lerp(
             transform.position, targetPos, Time.deltaTime * smoothSpeed);
 
-        // 方向：从 Canvas 指向相机，让 Canvas 的 +Z（文字面）朝向玩家
+        // 方向：从 Canvas 指向相机，让 Canvas 正面（文字面）朝向玩家
         Vector3 lookDir = camTransform.position - transform.position;
         if (lookDir.sqrMagnitude > 0.001f)
         {
@@ -97,7 +97,8 @@ public class FollowViewUI : MonoBehaviour
             lookDir.y = 0f;
             if (lookDir.sqrMagnitude > 0.001f)
             {
-                Quaternion targetRot = Quaternion.LookRotation(lookDir);
+                // 让 Canvas 正面朝向相机：LookRotation 后绕本地 Y 轴转 180°
+                Quaternion targetRot = Quaternion.LookRotation(lookDir) * Quaternion.Euler(0, 180, 0);
                 transform.rotation = Quaternion.Slerp(
                     transform.rotation, targetRot, Time.deltaTime * lookAtSpeed);
             }
@@ -125,7 +126,7 @@ public class FollowViewUI : MonoBehaviour
             Vector3 lookDir = camTransform.position - transform.position;
             lookDir.y = 0f;
             if (lookDir.sqrMagnitude > 0.001f)
-                transform.rotation = Quaternion.LookRotation(lookDir);
+                transform.rotation = Quaternion.LookRotation(lookDir) * Quaternion.Euler(0, 180, 0);
         }
     }
 

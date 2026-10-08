@@ -40,8 +40,8 @@ public static class CSYFollowViewUICreator
         rt.localScale = new Vector3(0.005f, 0.005f, 0.005f);
         // 放在玩家前方（玩家起点 (0,0,3.03) 面朝 -Z），高度约 1.5m
         rt.position = new Vector3(0, 1.5f, 1.2f);
-        // +Z 朝向玩家方向，文字不会镜像
-        rt.rotation = Quaternion.Euler(0, 0, 0);
+        // Canvas 文字在 -Z 面，初始朝玩家方向需要 Y=180°，运行时 FollowViewUI 会接管
+        rt.rotation = Quaternion.Euler(0, 180, 0);
 
         Image bg = root.AddComponent<Image>();
         bg.color = new Color(0.08f, 0.08f, 0.08f, 0.85f);
