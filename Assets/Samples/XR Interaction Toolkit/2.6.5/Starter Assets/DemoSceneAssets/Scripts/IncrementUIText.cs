@@ -1,45 +1,33 @@
-using UnityEngine.UI;
+using UnityEngine;
+using UnityEngine.XR.Interaction.Toolkit;
 
-namespace UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets
+[RequireComponent(typeof(XRBaseInteractable))] // 支持 GrabInteractable 或 SimpleInteractable
+public class ShowObjectNameOnGrab : MonoBehaviour
 {
-    /// <summary>
-    /// Add this component to a GameObject and call the <see cref="IncrementText"/> method
-    /// in response to a Unity Event to update a text display to count up with each event.
-    /// </summary>
-    public class IncrementUIText : MonoBehaviour
+    private XRBaseInteractable interactable;
+
+    private void Awake()
     {
-        [SerializeField]
-        [Tooltip("The Text component this behavior uses to display the incremented value.")]
-        Text m_Text;
+        interactable = GetComponent<XRBaseInteractable>();
+    }
 
-        /// <summary>
-        /// The Text component this behavior uses to display the incremented value.
-        /// </summary>
-        public Text text
-        {
-            get => m_Text;
-            set => m_Text = value;
-        }
+    private void OnEnable()
+    {
+        // 订阅抓取/选中事件
+        interactable.selectEntered.AddListener(OnGrabbed);
+    }
 
-        int m_Count;
+    private void OnDisable()
+    {
+        interactable.selectEntered.RemoveListener(OnGrabbed);
+    }
 
-        /// <summary>
-        /// See <see cref="MonoBehaviour"/>.
-        /// </summary>
-        protected void Awake()
-        {
-            if (m_Text == null)
-                Debug.LogWarning("Missing required Text component reference. Use the Inspector window to assign which Text component to increment.", this);
-        }
+    private void OnGrabbed(SelectEnterEventArgs args)
+    {
+        // 方法 1：在 Unity 的 Console 控制台打印出当前物体的名字
+        Debug.Log("当前抓取的物体是: " + gameObject.name, gameObject);
 
-        /// <summary>
-        /// Increment the string message of the Text component.
-        /// </summary>
-        public void IncrementText()
-        {
-            m_Count += 1;
-            if (m_Text != null)
-                m_Text.text = m_Count.ToString();
-        }
+        // 方法 2：如果你想在 VR 头显里或者 UI 文本（TextMeshPro）上显示，可以在这里赋值
+        // myUiText.text = "目标物体: " + gameObject.name;
     }
 }
