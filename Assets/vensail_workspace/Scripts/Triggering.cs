@@ -54,12 +54,8 @@ public class Triggering : MonoBehaviour
             // 检测该手柄的 Activate 动作（也就是 Trigger 键）是否在这个瞬间被按下
             if (targetController.activateAction.action.WasPressedThisFrame())
             {
-
-                    ShowThings.SetActive(true); // 激活目标物体
-            }
-            else
-            {
-                ShowThings.SetActive(false); // 松开时隐藏目标物体
+                bool nextState = !ShowThings.activeSelf;
+                ShowThings.SetActive(nextState);
             }
         }
     }
