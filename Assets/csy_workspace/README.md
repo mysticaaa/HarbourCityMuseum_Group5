@@ -1,4 +1,4 @@
-# csy_works — 陈思宇工作区
+# csy_workspace — 陈思宇工作区
 
 > Module 2: 场景搭建 (Scene Building)
 > 个人工作区，避免 Git 冲突。最终成品再合并到共享目录。

@@ -5,13 +5,13 @@ using UnityEngine;
 /// <summary>
 /// 一键创建 Module 2 所需的基础房间材质。
 /// 菜单: CSY Tools > Create Room Materials
-/// 所有材质输出到 Assets/csy_works/Materials/
+/// 所有材质输出到 Assets/csy_workspace/Materials/
 ///
 /// COMP5424 Phase 2 — Harbour City Museum (Group 5) · Module 2 · csy
 /// </summary>
 public static class CSYMaterialCreator
 {
-    private const string OUTPUT_FOLDER = "Assets/csy_works/Materials";
+    private const string OUTPUT_FOLDER = "Assets/csy_workspace/Materials";
 
     [MenuItem("CSY Tools/Create Room Materials")]
     public static void CreateAll()

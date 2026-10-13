@@ -1,9 +1,9 @@
-# csy_works 更新记录
+# csy_workspace 更新记录
 
 ## 2026-10-08 Module 2 场景搭建
 
 ### Commit 4cd3edc — 创建个人工作区
-- 建立 `csy_works/` 目录结构（Scenes/Models/Materials/Textures/Prefabs/Scripts/Lighting）
+- 建立 `csy_workspace/` 目录结构（Scenes/Models/Materials/Textures/Prefabs/Scripts/Lighting）
 - 每个子目录放 `.gitkeep` 保留空文件夹
 - 写 `README.md` 说明用途和规则
 
@@ -11,7 +11,7 @@
 **脚本（4 个）：**
 - `FollowViewUI.cs` — 跟随 XR 相机的 World Space Canvas，按 M 键弹出/隐藏，内置 Exit/Back 按钮
 - `OperationHint.cs` — 走近自动弹出操作提示文字，支持 Proximity / Always 两种模式
-- `CSYMaterialCreatorRuntime.cs` — 一键生成 9 个房间材质到 `csy_works/Materials/`
+- `CSYMaterialCreatorRuntime.cs` — 一键生成 9 个房间材质到 `csy_workspace/Materials/`
 - `Editor/CSYMaterialCreatorEditor.cs` — Inspector 绿色大按钮触发材质生成
 - `Editor/CSYFollowViewUICreator.cs` — 菜单 `CSY Tools > Create Follow View UI` 一键创建跟随 UI
 - `Editor/CSYMaterialCreator.cs` — 菜单项（备用）

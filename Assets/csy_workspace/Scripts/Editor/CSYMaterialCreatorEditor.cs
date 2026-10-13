@@ -26,7 +26,7 @@ public class CSYMaterialCreatorEditor : Editor
             GUI.backgroundColor = Color.white;
 
             GUILayout.Space(5);
-            EditorGUILayout.HelpBox("点击按钮会在 Assets/csy_works/Materials/ 下生成 9 个房间基础材质。", MessageType.Info);
+            EditorGUILayout.HelpBox("点击按钮会在 Assets/csy_workspace/Materials/ 下生成 9 个房间基础材质。", MessageType.Info);
         }
 }
 #endif

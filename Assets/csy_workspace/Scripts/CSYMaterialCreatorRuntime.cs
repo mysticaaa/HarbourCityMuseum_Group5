@@ -9,7 +9,7 @@ using UnityEngine;
 /// </summary>
 public class CSYMaterialCreatorRuntime : MonoBehaviour
 {
-    private const string OUTPUT_FOLDER = "Assets/csy_works/Materials";
+    private const string OUTPUT_FOLDER = "Assets/csy_workspace/Materials";
 
     [ContextMenu("Create Room Materials")]
     public void CreateAll()
