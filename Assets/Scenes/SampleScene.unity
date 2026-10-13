@@ -501,6 +501,7 @@ GameObject:
   - component: {fileID: 214942032}
   - component: {fileID: 214942031}
   - component: {fileID: 214942030}
+  - component: {fileID: 214942033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -516,13 +517,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 214942028}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0.05098466, y: 0, z: 0, w: 0.9986991}
+  m_LocalPosition: {x: 0.02, y: 0.09, z: -0.72}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 578188987}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -5.8, y: 0, z: 0}
 --- !u!114 &214942030
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -691,6 +692,34 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
+--- !u!114 &214942033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 214942028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73a21a9259e852645be9062d6e713a76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  helmetModelPlaceholder: {fileID: 1635769227}
+  rayOrigin: {fileID: 0}
+  maxDistance: 30
+  rayWidth: 0.01
+  raycastLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  rayMaterial: {fileID: 0}
+  colorNormal: {r: 1, g: 1, b: 1, a: 1}
+  colorHover: {r: 0, g: 1, b: 0, a: 1}
+  colorSelected: {r: 0, g: 1, b: 0, a: 1}
+  followMouseCursor: 1
+  useMouseInput: 1
+  useXRInput: 0
+  controllerNode: 5
+  enableDebugLog: 0
 --- !u!21 &405513416
 Material:
   serializedVersion: 8
@@ -921,6 +950,7 @@ GameObject:
   - component: {fileID: 462515081}
   - component: {fileID: 462515080}
   - component: {fileID: 462515082}
+  - component: {fileID: 2000000001}
   m_Layer: 0
   m_Name: XR Origin (XR Rig)
   m_TagString: Untagged
@@ -956,7 +986,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Camera: {fileID: 214942032}
   m_OriginBaseGameObject: {fileID: 462515076}
-  m_CameraFloorOffsetObject: {fileID: 578188986}
+  m_CameraFloorOffsetObject: {fileID: 214942028}
   m_RequestedTrackingOriginMode: 0
   m_CameraYOffset: 1.1176
 --- !u!4 &462515079
@@ -967,7 +997,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 462515076}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
+  m_LocalRotation: {x: 0, y: 0.9570244, z: 0, w: 0.2900074}
   m_LocalPosition: {x: 0, y: 0, z: 3.03}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -975,7 +1005,7 @@ Transform:
   - {fileID: 578188987}
   - {fileID: 1042353950}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 146.4, z: 0}
 --- !u!143 &462515080
 CharacterController:
   m_ObjectHideFlags: 0
@@ -1142,7 +1172,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 470963201}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e988983f96fe1dd48800bcdfc82f23e9, type: 3}
   m_Name: 
@@ -1535,7 +1565,7 @@ MonoBehaviour:
   m_UpdateTrackingType: 0
   m_EnableInputTracking: 1
   m_EnableInputActions: 1
-  m_ModelPrefab: {fileID: 139810518}
+  m_ModelPrefab: {fileID: 0}
   m_ModelParent: {fileID: 470963202}
   m_Model: {fileID: 0}
   m_AnimateModel: 0
@@ -2977,6 +3007,8 @@ GameObject:
   - component: {fileID: 1282968274}
   - component: {fileID: 1282968273}
   - component: {fileID: 1282968272}
+  - component: {fileID: 1282968276}
+  - component: {fileID: 1282968277}
   m_Layer: 0
   m_Name: MainCanvas
   m_TagString: Untagged
@@ -3010,7 +3042,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1282968270}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f3a9d16b5b1cc2e478a6b2a5def390d8, type: 3}
   m_Name: 
@@ -3100,6 +3132,62 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1282968276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1282968270}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73a21a9259e852645be9062d6e713a76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  helmetModelPlaceholder: {fileID: 0}
+  rayOrigin: {fileID: 0}
+  maxDistance: 10
+  rayWidth: 0.01
+  raycastLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  rayMaterial: {fileID: 0}
+  colorNormal: {r: 1, g: 1, b: 1, a: 0.4}
+  colorHover: {r: 1, g: 0.85, b: 0.3, a: 0.9}
+  colorSelected: {r: 0.15, g: 1, b: 0.25, a: 1}
+  followMouseCursor: 0
+  useMouseInput: 1
+  useXRInput: 1
+  controllerNode: 5
+  enableDebugLog: 0
+--- !u!114 &1282968277
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1282968270}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73a21a9259e852645be9062d6e713a76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  helmetModelPlaceholder: {fileID: 0}
+  rayOrigin: {fileID: 0}
+  maxDistance: 10
+  rayWidth: 0.01
+  raycastLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  rayMaterial: {fileID: 0}
+  colorNormal: {r: 1, g: 1, b: 1, a: 0.4}
+  colorHover: {r: 1, g: 0.85, b: 0.3, a: 0.9}
+  colorSelected: {r: 0.15, g: 1, b: 0.25, a: 1}
+  followMouseCursor: 1
+  useMouseInput: 1
+  useXRInput: 0
+  controllerNode: 5
+  enableDebugLog: 0
 --- !u!1 &1368098318
 GameObject:
   m_ObjectHideFlags: 0
@@ -3498,6 +3586,7 @@ GameObject:
   - component: {fileID: 1635769230}
   - component: {fileID: 1635769229}
   - component: {fileID: 1635769228}
+  - component: {fileID: 1635769233}
   m_Layer: 0
   m_Name: HelmetModel_Placeholder
   m_TagString: Untagged
@@ -3634,6 +3723,34 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1368098319}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1635769233
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635769227}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73a21a9259e852645be9062d6e713a76, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  helmetModelPlaceholder: {fileID: 0}
+  rayOrigin: {fileID: 0}
+  maxDistance: 10
+  rayWidth: 0.01
+  raycastLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  rayMaterial: {fileID: 0}
+  colorNormal: {r: 1, g: 1, b: 1, a: 0.4}
+  colorHover: {r: 1, g: 0.85, b: 0.3, a: 0.9}
+  colorSelected: {r: 0.15, g: 1, b: 0.25, a: 1}
+  followMouseCursor: 1
+  useMouseInput: 1
+  useXRInput: 0
+  controllerNode: 5
+  enableDebugLog: 0
 --- !u!21 &1758479593
 Material:
   serializedVersion: 8
@@ -3996,7 +4113,7 @@ Transform:
   m_GameObject: {fileID: 1841946774}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: -3.97, y: 1.73, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4020,7 +4137,7 @@ MonoBehaviour:
   helmetStationDuration: 60
   outroDuration: 30
   autoAdvance: 0
-  enableDebugLog: 1
+  enableDebugLog: 0
 --- !u!114 &1841946777
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4165,7 +4282,7 @@ MonoBehaviour:
   - Ship Model
   - Port-City Timeline
   - Diving Helmet
-  enableDebugLog: 1
+  enableDebugLog: 0
 --- !u!1 &1908607974
 GameObject:
   m_ObjectHideFlags: 0
@@ -4221,7 +4338,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1908607974}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e988983f96fe1dd48800bcdfc82f23e9, type: 3}
   m_Name: 
@@ -4614,7 +4731,7 @@ MonoBehaviour:
   m_UpdateTrackingType: 0
   m_EnableInputTracking: 1
   m_EnableInputActions: 1
-  m_ModelPrefab: {fileID: 1829269688}
+  m_ModelPrefab: {fileID: 0}
   m_ModelParent: {fileID: 1908607975}
   m_Model: {fileID: 0}
   m_AnimateModel: 0
@@ -4987,6 +5104,23 @@ Material:
     - _Color: {r: 0.78, g: 0.76, b: 0.72, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
+--- !u!114 &2000000001
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 462515076}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a76a0cf60055c5742a2f03d6ea44175e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveSpeed: 3
+  sprintMultiplier: 1.5
+  mouseSensitivity: 2
+  invertY: 0
+  playerCamera: {fileID: 214942032}
 --- !u!1 &2030852054
 GameObject:
   m_ObjectHideFlags: 0

@@ -37,6 +37,14 @@ public class DesktopMovementController : MonoBehaviour
 
     private void Start()
     {
+        yaw = transform.eulerAngles.y;
+        if (playerCamera != null)
+        {
+            pitch = playerCamera.transform.localEulerAngles.x;
+            if (pitch > 180f)
+                pitch -= 360f;
+        }
+
         // Lock cursor when running
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
