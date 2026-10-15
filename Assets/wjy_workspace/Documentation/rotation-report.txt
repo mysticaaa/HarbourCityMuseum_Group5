@@ -1,0 +1,4 @@
+WJY_FishingRodRotationPivot: 100 FixedUpdate calls rotated 30.000 degrees; pause works.
+ZXH_HelmetRotationPivot: 100 FixedUpdate calls rotated 30.000 degrees; pause works.
+ZXH_ShipRotationPivot: 100 FixedUpdate calls rotated 30.000 degrees; pause works.
+PASS

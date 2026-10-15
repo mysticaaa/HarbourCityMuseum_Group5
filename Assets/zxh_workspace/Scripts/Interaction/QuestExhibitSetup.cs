@@ -22,15 +22,28 @@ public class QuestExhibitSetup : MonoBehaviour
         foreach (DesktopMovementController desktop in FindObjectsOfType<DesktopMovementController>(true))
             desktop.enabled = false;
         var managers = FindObjectsOfType<XRInteractionManager>(true);
-        var manager = managers.Length > 0 ? managers[0] : new GameObject("ZXH_XRInteractionManager").AddComponent<XRInteractionManager>();
-        manager.gameObject.SetActive(true);
+        XRInteractionManager manager = null;
+        foreach (XRInteractionManager candidate in managers)
+        {
+            // A manager under a disabled duplicate Rig cannot process interaction events.
+            if (!candidate.gameObject.activeInHierarchy || candidate.gameObject.scene != gameObject.scene)
+                continue;
+            manager = candidate;
+            if (candidate.isActiveAndEnabled) break;
+        }
+        if (manager == null)
+        {
+            var managerObject = new GameObject("ZXH_XRInteractionManager");
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(managerObject, gameObject.scene);
+            manager = managerObject.AddComponent<XRInteractionManager>();
+        }
         manager.enabled = true;
         foreach (XRBaseInteractor interactor in FindObjectsOfType<XRBaseInteractor>(true))
             interactor.interactionManager = manager;
         foreach (XRBaseInteractable interactable in FindObjectsOfType<XRBaseInteractable>(true))
             interactable.interactionManager = manager;
         foreach (XRInteractionManager other in managers)
-            if (other != manager) other.enabled = false;
+            if (other != manager && other.gameObject.scene == gameObject.scene) other.enabled = false;
         foreach (XRRayInteractor ray in FindObjectsOfType<XRRayInteractor>())
         {
             var controller = ray.GetComponent<ActionBasedController>();
