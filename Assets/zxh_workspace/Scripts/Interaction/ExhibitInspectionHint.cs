@@ -27,10 +27,10 @@ public class ExhibitInspectionHint : MonoBehaviour
         if (model.parent != null) label.transform.SetParent(model.parent.parent, true);
         var text = label.AddComponent<TextMesh>();
         text.text = message;
-        text.fontSize = 48;
-        text.characterSize = 0.003f;
+        text.fontSize = 80;
+        text.characterSize = 0.008f;
         text.anchor = TextAnchor.MiddleCenter;
-        text.color = Color.white;
+        text.color = Color.black;
         label.AddComponent<ExhibitInspectionHint>();
     }
 

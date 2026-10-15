@@ -5,21 +5,24 @@ using UnityEngine.XR.Interaction.Toolkit;
 [RequireComponent(typeof(XRGrabInteractable))]
 public class HelmetHandInspection : MonoBehaviour
 {
-    private XRGrabInteractable grab;
-    private ExhibitAutoRotation rotation;
-    private Rigidbody body;
-    private Transform homeParent;
-    private Vector3 homePosition;
-    private Quaternion homeRotation;
-    private Vector3 homeScale;
-    private Coroutine returning;
+    [SerializeField] private XRGrabInteractable grab;
+    [SerializeField] private ExhibitAutoRotation rotation;
+    [SerializeField] private Rigidbody body;
+    [SerializeField] public Transform homeParent;
+    [SerializeField] public Vector3 homePosition;
+    [SerializeField] private Quaternion homeRotation;
+    [SerializeField] private Vector3 homeScale;
+    [SerializeField] private Coroutine returning;
 
     private void Awake()
     {
+        homeParent = transform.parent;
+        homePosition = transform.localPosition;
+        homeRotation = transform.localRotation;
+        homeScale = transform.localScale;
         grab = GetComponent<XRGrabInteractable>();
         body = GetComponent<Rigidbody>();
         rotation = GetComponentInParent<ExhibitAutoRotation>();
-        SaveHomePose();
         grab.useDynamicAttach = false;
         grab.throwOnDetach = false;
         grab.movementType = XRBaseInteractable.MovementType.Kinematic;
@@ -33,7 +36,7 @@ public class HelmetHandInspection : MonoBehaviour
         grab.attachTransform = anchor;
         grab.selectEntered.AddListener(OnGrab);
         grab.selectExited.AddListener(OnRelease);
-        ExhibitInspectionHint.Create(transform, "Helmet: hold trigger to inspect; release to return");
+        ExhibitInspectionHint.Create(transform, "Point ray at the helmet, press the grab button and use the joystick to inspect.");
     }
 
     private void OnGrab(SelectEnterEventArgs args)
@@ -44,13 +47,6 @@ public class HelmetHandInspection : MonoBehaviour
         if (rotation != null) rotation.Paused = true;
     }
 
-    private void SaveHomePose()
-    {
-        homeParent = transform.parent;
-        homePosition = transform.localPosition;
-        homeRotation = transform.localRotation;
-        homeScale = transform.localScale;
-    }
 
     private void OnRelease(SelectExitEventArgs args)
     {
@@ -59,24 +55,31 @@ public class HelmetHandInspection : MonoBehaviour
 
     private IEnumerator ReturnHome()
     {
-        transform.SetParent(homeParent, true);
+        // 1. 先解除抓取锚点或恢复状态
+        transform.SetParent(homeParent, false);
         body.useGravity = false;
         body.isKinematic = true;
-        Vector3 start = transform.localPosition;
-        Quaternion startRotation = transform.localRotation;
+
+        // 2. 为了绝对精准，我们记录“当前瞬间”的本地坐标作为起点
+        Vector3 startPos = transform.localPosition;
+        Quaternion startRot = transform.localRotation;
         Vector3 startScale = transform.localScale;
+
         for (float t = 0; t < 1; t += Time.deltaTime / 0.45f)
         {
             float eased = Mathf.SmoothStep(0, 1, t);
-            transform.localPosition = Vector3.Lerp(start, homePosition, eased);
-            transform.localRotation = Quaternion.Slerp(startRotation, homeRotation, eased);
+            transform.localPosition = Vector3.Lerp(startPos, homePosition, eased);
+            transform.localRotation = Quaternion.Slerp(startRot, homeRotation, eased);
             transform.localScale = Vector3.Lerp(startScale, homeScale, eased);
             yield return null;
         }
+
+        // 3. 强制归位，确保零误差
         transform.localPosition = homePosition;
         transform.localRotation = homeRotation;
         transform.localScale = homeScale;
         returning = null;
+
         if (rotation != null) rotation.Paused = false;
     }
 

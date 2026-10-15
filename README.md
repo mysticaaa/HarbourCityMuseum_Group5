@@ -1,6 +1,6 @@
 # Harbour City Museum — Group 5 (COMP5424 Extended Reality)
 
-An accessible VR museum experience for the Harbour City Museum, built with Unity, SteamVR, and Meta Quest 3.
+An accessible VR museum experience for the Harbour City Museum, built with Unity, **OpenXR**, and Meta Quest 3.
 
 ## Project Overview
 
