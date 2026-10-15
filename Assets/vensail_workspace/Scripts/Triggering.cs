@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.XR.Interaction.Toolkit;
 
 [RequireComponent(typeof(XRBaseInteractable))] // 支持 SimpleInteractable
@@ -8,7 +9,6 @@ public class Triggering : MonoBehaviour
 
     private bool isHovered = false; // 记录是否被光标指着
     private ActionBasedController targetController; // 记录当前指着它的控制器
-    public GameObject ShowThings;
 
     private void Awake()
     {
@@ -54,8 +54,7 @@ public class Triggering : MonoBehaviour
             // 检测该手柄的 Activate 动作（也就是 Trigger 键）是否在这个瞬间被按下
             if (targetController.activateAction.action.WasPressedThisFrame())
             {
-                bool nextState = !ShowThings.activeSelf;
-                ShowThings.SetActive(nextState);
+                SceneManager.LoadScene("Ship_vensail");
             }
         }
     }

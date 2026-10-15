@@ -31,7 +31,7 @@ public class ShowObjectNameOnGrab : MonoBehaviour
     // 抓取时触发
     private void OnGrabbed(SelectEnterEventArgs args)
     {
-        Debug.Log("当前抓取的物体是: " + gameObject.name, gameObject);
+
 
         if (targetObject != null)
         {
@@ -42,7 +42,6 @@ public class ShowObjectNameOnGrab : MonoBehaviour
     // 松开时触发（注意：必须加上 SelectExitEventArgs 参数）
     private void NotGrabbed(SelectExitEventArgs args)
     {
-        Debug.Log("当前松开的物体是: " + gameObject.name, gameObject);
 
         if (targetObject != null)
         {
