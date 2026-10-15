@@ -1,0 +1,9 @@
+{
+    "Welcome":  "Welcome to Harbour City Museum. Use the left stick to move and the right stick to snap turn. Point either controller ray and press the grip to select objects. Use the index trigger for UI buttons. Hold the helmet to observe it, then release to return it. Click the ship for details, or use the separate cabin entry. You can skip or explore freely.",
+    "Cabin":  "Welcome aboard this teaching reconstruction. The wheel controls a simulated heading. The compass shows north relative to that heading. The room never sails or rocks. Buttons provide alternatives to precise movements. Use the exit panel to return to the museum.",
+    "Wheel":  "Hold the grip on a wheel rim or spoke and move your ray around the wheel. Left and right buttons are also available. Start the teaching engine before turning the heading. This simplified model is not training for operating a real vessel.",
+    "Helmet":  "Inspect the helmet shell, viewing ports and neck interface. Historical fittings differ. The model is an observation aid, and unseen components are not claimed. You may use the magnified copy instead of holding the grip.",
+    "Work":  "London Museum records a diving helmet used by Port of London Authority divers. Their work included salvage and clearing propellers. This is an international example. The model in this project is not identified as that museum object.",
+    "Migration":  "Empire Windrush arrived at Tilbury on the twenty second of June, nineteen forty eight. Its voyage is a documented example of maritime migration. It is not the history of the fishing boat shown in this project.",
+    "Memories":  "Royal Museums Greenwich preserves oral histories about maritime work, migration and life at sea. Our cabin and fictional log are teaching reconstructions, not quotations from a crew member. Consider whose stories an object can help you discover."
+}
