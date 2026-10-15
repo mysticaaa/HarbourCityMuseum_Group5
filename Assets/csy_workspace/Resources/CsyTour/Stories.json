@@ -1,0 +1,34 @@
+{
+  "chapters": [
+    {
+      "id": "work",
+      "period": "1909-1935",
+      "title": "Work above and below the water",
+      "body": "A London Museum helmet record describes a Port of London Authority diver and equipment for speaking with the surface. Divers helped with underwater maintenance and salvage.",
+      "prompt": "Look at the helmet windows. How might a diver and a surface team work together when visibility is poor?",
+      "sourceLabel": "London Museum, DK86.21/2",
+      "sourceUrl": "https://www.londonmuseum.org.uk/collections/v/object-260946/helmet-diving-helmet/",
+      "disclosure": "The date belongs to the documented museum object, not our 3D model. Our model is an illustration; no ownership or exact reconstruction is claimed."
+    },
+    {
+      "id": "migration",
+      "period": "1948",
+      "title": "Ships connect people and places",
+      "body": "Empire Windrush reached Tilbury on 22 June 1948 with passengers from the Caribbean and elsewhere. This is one documented example of travel and migration through a port.",
+      "prompt": "Compare the working spaces aboard our fishing boat with the different needs of a passenger voyage. What would people need to bring?",
+      "sourceLabel": "Royal Museums Greenwich, History of the Windrush",
+      "sourceUrl": "https://www.rmg.co.uk/stories/ocean/history-empire-windrush",
+      "disclosure": "This fishing-boat model is not Windrush and is not claimed to have carried those passengers. No passenger biography is invented here."
+    },
+    {
+      "id": "life",
+      "period": "Remembering everyday life",
+      "title": "Objects cannot tell every story",
+      "body": "Royal Museums Greenwich preserves oral histories about maritime life. Personal accounts can help connect shipboard objects to work and everyday experience.",
+      "prompt": "Choose a seat, instrument or tool aboard the teaching boat. What question would you ask someone who used it?",
+      "sourceLabel": "Royal Museums Greenwich, Oral history",
+      "sourceUrl": "https://www.rmg.co.uk/collections/our-collections-oral-history",
+      "disclosure": "No historical recording or quotation is reproduced. Our cabin and log are teaching reconstructions, not evidence of a named person or this boat's history."
+    }
+  ]
+}

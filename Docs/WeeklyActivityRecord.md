@@ -65,3 +65,12 @@
 - [ ] Individual reflection essays written
 
 **Notes:**
+
+
+## CSY update — 2026-10-15
+
+| Member | Attributable delivery | Evidence / status |
+|---|---|---|
+| Chen Siyu (CSY) | Optional port-city timeline: three sourced chapters, object prompts, source/reconstruction pages, read-marker state, recap, confirmed reset; desktop preview and latest museum/boat scene-copy integration | `Docs/CSY_Phase2_Timeline.md`; `Assets/csy_workspace/Evidence/Timeline_validation.txt`; four page screenshots. Unity headless and graphical checks and three boat-return cycles passed; headset/user evaluation pending. Timeline publication branch: `csy-ui-story`; see Git history for the commit. |
+
+Uses ZXH's WorldPanel, BoatTriggerAction and MuseumSession rather than claiming those as original CSY code. Research links originated in ZXH's documentation and were rechecked; new wording/questions/state/presentation integration are recorded separately. The group leader's pending follow-view UI and ship-return button are deferred as requested; no claim is made to that unpublished implementation. AI assistance was used; review and disclose under course policy.

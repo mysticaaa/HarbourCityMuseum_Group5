@@ -1,0 +1,67 @@
+PASS: Three chapters; no automatic read credit
+PASS: Source and interpretation: work
+PASS: Source and interpretation: migration
+PASS: Source and interpretation: life
+PASS: Previous boundary clamps
+PASS: Next boundary clamps
+PASS: Repeated read marking is idempotent
+PASS: Read-marker reset
+PASS: Duplicate chapter ids rejected
+PASS: Ray/trigger target configured: 1948: Ships connect people and places
+PASS: Direct chapter selection does not claim reading
+PASS: Ray/trigger target configured: Source and reconstruction
+PASS: Sources keep current chapter
+PASS: Ray/trigger target configured: Return to this chapter
+PASS: Ray/trigger target configured: Mark this chapter read
+PASS: Physical button callback marks current chapter
+PASS: Ray/trigger target configured: Cancel
+PASS: Reset cancellation retains markers
+PASS: Ray/trigger target configured: Explore the timeline
+PASS: Close and reopen preserves progress
+PASS: Ray/trigger target configured: Confirm reset markers
+PASS: Reset confirmation clears timeline only
+PASS: Previous disabled on first chapter
+PASS: Next disabled on final chapter
+PASS: Text fits: Port-city timeline | CSY
+PASS: Text fits: Ships, work and everyday lif
+PASS: Text fits: 1909-1935: Work above and be
+PASS: Text fits: 1948: Ships connect people a
+PASS: Text fits: Remembering everyday life: O
+PASS: Text fits: Visit recap
+PASS: Text fits: Continue exploring
+PASS: Text fits: 1909-1935 | Work above and b
+PASS: Text fits: Chapter 1/3 | Not marked rea
+PASS: Text fits: A London Museum helmet recor
+PASS: Text fits: Previous chapter
+PASS: Text fits: Next chapter
+PASS: Text fits: Mark this chapter read
+PASS: Text fits: Source and reconstruction
+PASS: Text fits: Choose another chapter
+PASS: Text fits: Continue exploring
+PASS: Text fits: Source and interpretation
+PASS: Text fits: London Museum, DK86.21/2
+PASS: Text fits: https://www.londonmuseum.org
+PASS: Text fits: Return to this chapter
+PASS: Text fits: Timeline overview
+PASS: Text fits: Connect objects and people
+PASS: Text fits: Chapters marked read: 0/3
+PASS: Text fits: Ship: explore the spaces and
+PASS: Text fits: Choose another chapter
+PASS: Text fits: Continue exploring
+PASS: Text fits: Reset read markers...
+PASS: Integration keeps one active XR rig
+PASS: Integration adds no competing follow-view menu
+PASS: Timeline is hidden while aboard
+PASS: Return preserves chapter and read marker
+PASS: Museum pose restored
+PASS: Rig component enabled states preserved
+PASS: Timeline is hidden while aboard
+PASS: Return preserves chapter and read marker
+PASS: Museum pose restored
+PASS: Rig component enabled states preserved
+PASS: Timeline is hidden while aboard
+PASS: Return preserves chapter and read marker
+PASS: Museum pose restored
+PASS: Rig component enabled states preserved
+PASS: Three boat return cycles verified; no headset hardware input was tested.
+NOT TESTED: physical headset/hand-controller input, comfort, target-device frame rate, participant learning.
