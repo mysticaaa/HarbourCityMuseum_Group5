@@ -245,10 +245,13 @@ namespace ZxhMuseum
             MoveTo(headPoint, yaw);
             Vector3 correction = Vector3.up * (headPoint.y - Origin.Camera.transform.position.y);
             SetOriginPose(Origin.transform.position + correction, Origin.transform.rotation);
-            Vector3 seatControlPoint = Origin.Camera.transform.position + Origin.Camera.transform.forward * 0.8f + Vector3.down * 0.18f;
-            seatedControls = WorldPanel.Create(transform, "Virtual seat controls", seatControlPoint, FacingVisitor(seatControlPoint), 550);
-            seatedControls.Status.text = "You are virtually seated.\nB/Y or this button returns to the saved standing point.";
-            seatedControls.Button("Leave virtual seat", LeaveSeat);
+            if (!boatOnly)
+            {
+                Vector3 seatControlPoint = Origin.Camera.transform.position + Origin.Camera.transform.forward * 0.8f + Vector3.down * 0.18f;
+                seatedControls = WorldPanel.Create(transform, "Virtual seat controls", seatControlPoint, FacingVisitor(seatControlPoint), 550);
+                seatedControls.Status.text = "You are virtually seated. B/Y returns to standing.";
+                seatedControls.Button("Leave virtual seat", LeaveSeat);
+            }
             Seated = true; yield return Fade(0); Busy = false;
         }
         public void LeaveSeat()

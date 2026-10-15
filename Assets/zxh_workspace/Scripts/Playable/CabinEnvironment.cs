@@ -12,7 +12,11 @@ namespace ZxhMuseum
         public WheelRayControl Wheel { get; private set; }
         public int InteractableCount { get; private set; }
         private readonly List<Material> materials = new List<Material>();
-        private WorldPanel instruments, compassView, seat, cabinet;
+        private WorldPanel instruments, compassView, cabinet;
+        public CabinSeaWindow SeaWindow { get; private set; }
+        public CabinSideWindow SideWindow { get; private set; }
+        public GameObject Sofa { get; private set; }
+        public PhysicalPushButton LeaveSeatButton { get; private set; }
         private Transform largeNeedle, drawer;
         private bool drawerOpen;
         private int logPage;
@@ -57,7 +61,11 @@ namespace ZxhMuseum
             Navigation = gameObject.AddComponent<VoyageState>();
             var floor = Box("Cabin floor - teleport surface", new Vector3(0, -0.1f, 0), new Vector3(4, 0.2f, 7), wood);
             floor.AddComponent<TeleportationArea>();
-            Box("Port bulkhead", new Vector3(-2, 1.05f, 0), new Vector3(0.15f, 2.1f, 7), wood);
+            // Right when facing the bow (local -Z). Leave a real opening through the wall.
+            Box("Right wall forward", new Vector3(-2,1.05f,-1.95f), new Vector3(.15f,2.1f,3.1f),wood);
+            Box("Right wall aft", new Vector3(-2,1.05f,2.15f), new Vector3(.15f,2.1f,2.7f),wood);
+            Box("Right window sill", new Vector3(-2,.55f,.2f), new Vector3(.15f,1.1f,1.2f),wood);
+            Box("Right window lintel", new Vector3(-2,2.04f,.2f), new Vector3(.15f,.12f,1.2f),wood);
             Box("Starboard bulkhead", new Vector3(2, 1.05f, 0), new Vector3(0.15f, 2.1f, 7), wood);
             Box("Forward window port frame", new Vector3(-1.6f, 1.05f, -3.5f), new Vector3(.8f, 2.1f, .15f), wood);
             Box("Forward window starboard frame", new Vector3(1.6f, 1.05f, -3.5f), new Vector3(.8f, 2.1f, .15f), wood);
@@ -85,6 +93,9 @@ namespace ZxhMuseum
             }
             Box("Helm console", new Vector3(0, 0.7f, -2.65f), new Vector3(2.4f, 1.2f, 0.7f), wood);
             BuildWheel(); BuildCompass(); BuildSeating(); BuildCabinet(); BuildStories(); BuildBell(); BuildRadio();
+            var windowMaker=gameObject.AddComponent<PhysicalBoatControls>();
+            SeaWindow=gameObject.AddComponent<CabinSeaWindow>();SeaWindow.Initialize(windowMaker);
+            SideWindow=gameObject.AddComponent<CabinSideWindow>();SideWindow.Initialize(windowMaker);
             var engineRoot = new GameObject("ZXH_EngineTeachingDiagram");
             engineRoot.transform.SetParent(transform, false); engineRoot.transform.localPosition = new Vector3(1.4f, 0.8f, -0.65f);
             Engine = engineRoot.AddComponent<EngineCutaway>();
@@ -211,15 +222,16 @@ namespace ZxhMuseum
         }
         private void BuildSeating()
         {
-            var sofa = Box("Sofa - virtual seating", new Vector3(1.3f, 0.45f, 0.7f), new Vector3(0.9f, 0.35f, 1.8f), new Color(0.16f, 0.28f, 0.32f));
+            Sofa = Box("Sofa - virtual seating", new Vector3(1.3f, 0.45f, 0.7f), new Vector3(0.9f, 0.35f, 1.8f), new Color(0.16f, 0.28f, 0.32f));
             Box("Sofa back", new Vector3(1.75f, 0.8f, 0.7f), new Vector3(0.18f, 0.8f, 1.8f), new Color(0.16f, 0.28f, 0.32f));
-            seat = Panel("Virtual seat", new Vector3(0.65f, 1.3f, 0.7f), 90, 600);
-            seat.Status.text = "Virtual sitting only. Do not sit physically unless a real chair is ready.\nClick confirm, or keep exploring.";
-            seat.Button("Confirm virtual seat", () => MuseumSession.Instance?.Sit(transform.TransformPoint(new Vector3(1.1f, 1.2f, 0.7f)), transform.eulerAngles.y + 270));
-            seat.Button("Leave seat", () => MuseumSession.Instance?.LeaveSeat());
-            seat.Button("Cancel / close", () => seat.gameObject.SetActive(false));
-            Click(sofa, () => seat.gameObject.SetActive(true));
-            seat.gameObject.SetActive(false);
+            Click(Sofa, () => MuseumSession.Instance?.Sit(transform.TransformPoint(new Vector3(1.1f, 1.2f, 0.7f)), transform.eulerAngles.y + 270));
+            var maker=gameObject.AddComponent<PhysicalBoatControls>();
+            maker.Part("Sofa leave button support",PrimitiveType.Cube,new Vector3(.81f,.55f,.5f),new Vector3(.15f,.38f,.32f),new Color(.18f,.22f,.24f));
+            LeaveSeatButton=maker.Button("Sofa leave button",new Vector3(.75f,.9f,.5f),Quaternion.Euler(0,270,0),"LEAVE SEAT",()=>MuseumSession.Instance?.LeaveSeat());
+            maker.Part("Sofa instruction backing",PrimitiveType.Cube,new Vector3(.8f,.68f,1.15f),new Vector3(.1f,.17f,.46f),new Color(.18f,.22f,.24f));
+            var sign=new GameObject("Sofa instruction plate").transform;sign.SetParent(transform,false);
+            sign.localPosition=new Vector3(.74f,.68f,1.15f);sign.localRotation=Quaternion.Euler(0,90,0);
+            maker.Label(sign,"VIRTUAL SEAT\nPoint + trigger to sit",Vector3.zero,.02f,.4f,.11f);
         }
         private void BuildCabinet()
         {
@@ -289,8 +301,6 @@ namespace ZxhMuseum
             Action refresh = () => log.Status.text = pages[logPage]; refresh();
             log.Button("Previous page", () => { logPage = Mathf.Max(0, logPage - 1); refresh(); });
             log.Button("Next page", () => { logPage = Mathf.Min(2, logPage + 1); refresh(); });
-            var picture = Box("Port story picture", new Vector3(-1.9f, 1.5f, 0.1f), new Vector3(0.04f, 0.55f, 0.75f), new Color(0.3f, 0.46f, 0.55f));
-            Click(picture, () => Observation.Open(picture.transform, "Port interpretation", "Project-authored diagram, not an archival photograph.\nShips connect work, migration and everyday life."));
         }
         private void BuildRadio()
         {
@@ -337,13 +347,14 @@ namespace ZxhMuseum
             foreach (var item in tools) item.ResetPose();
             Navigation.ResetState(); MuseumSession.Instance?.LeaveSeat();
             drawerOpen = false; drawer.localPosition = new Vector3(-1, 0.8f, 1.7f);
-            compassView.gameObject.SetActive(false); seat.gameObject.SetActive(false); logPage = 0;
+            compassView.gameObject.SetActive(false); SeaWindow.Close(); SideWindow.Close(); logPage = 0;
             logPanel.Status.text = "1 / 3 - Arrival\nA teaching crew prepares for a harbour journey. This is fictional demonstration content.";
             radio.Stop(); radioPanel.gameObject.SetActive(false);
         }
         private void Update()
         {
             if (Navigation == null) return;
+            if(LeaveSeatButton!=null)LeaveSeatButton.SetIndicator(MuseumSession.Instance!=null && MuseumSession.Instance.Seated);
             drawer.localPosition = Vector3.MoveTowards(drawer.localPosition,
                 new Vector3(drawerOpen ? -0.8f : -1, 0.8f, 1.7f), Time.deltaTime * 0.4f);
             Needle.localRotation = Quaternion.AngleAxis(-Navigation.Heading, Vector3.up);

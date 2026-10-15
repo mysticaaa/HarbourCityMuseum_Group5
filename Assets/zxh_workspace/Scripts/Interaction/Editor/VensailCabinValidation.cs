@@ -20,6 +20,8 @@ public static class VensailCabinValidation
     private static Quaternion rotation;
     private static Vector3 originalFloorOffset;
     private static float originalCameraHeight, confirmationTime;
+    private static Vector3 beforeSeat;
+    private static Quaternion beforeSeatRotation;
     [InitializeOnLoadMethod]
     private static void Resume()
     {
@@ -95,12 +97,29 @@ public static class VensailCabinValidation
                     phase = 3;
                     session.gameObject.AddComponent<VensailButtonTestRunner>().Check = () =>
                     {
-                        try { VerifyButtons(session, deck); session.RequestReturn(); phase = 2; }
+                        try
+                        {
+                            VerifyButtons(session, deck);
+                            beforeSeat=session.Origin.transform.position;beforeSeatRotation=session.Origin.transform.rotation;
+                            interior.Sofa.GetComponent<BoatTriggerAction>().Press(); phase=5;
+                        }
                         catch (Exception error) { Debug.LogException(error); Finish(1, "ZXH VENSAIL CABIN FAIL"); }
                     };
                     return;
                 }
                 session.RequestReturn(); phase = 2;
+            }
+            else if(phase==5 && session.Seated)
+            {
+                var cabin=UnityEngine.Object.FindObjectOfType<CabinEnvironment>();
+                Require(Mathf.Abs(cabin.transform.InverseTransformPoint(session.Origin.Camera.transform.position).y-1.2f)<.02f,"Clicking sofa did not seat at correct height");
+                cabin.LeaveSeatButton.Actuate();phase=6;
+            }
+            else if(phase==6 && !session.Seated)
+            {
+                Require(Vector3.Distance(beforeSeat,session.Origin.transform.position)<.01f && Quaternion.Angle(beforeSeatRotation,session.Origin.transform.rotation)<.1f,"Physical leave button did not restore standing pose");
+                Debug.Log("ZXH PHYSICAL SEAT PASS: sofa trigger seats directly, physical leave button restores standing pose.");
+                session.RequestReturn();phase=2;
             }
             else if (phase == 2 && !session.InCabin)
             {
@@ -128,59 +147,74 @@ public static class VensailCabinValidation
     }
     private static void VerifyButtons(MuseumSession session, ShipDeckEnvironment deck)
     {
-        var button = Button("Rigging", "Raise");
-        // Headless mode disables the headset's modality-controlled rays. Use a temporary
-        // XRI controller to exercise the same hover + Activate path without changing the rig.
-        var testHand = new GameObject("ZXH temporary input test hand");
-        var controller = testHand.AddComponent<ActionBasedController>();
-        var ray = testHand.AddComponent<XRRayInteractor>();
-        ray.xrController = controller;
-        ray.interactionManager = button.GetComponent<XRSimpleInteractable>().interactionManager;
-        var saved = controller.activateAction;
-        var oldMode = InputSystem.settings.updateMode;
-        var oldFocus = InputSystem.settings.backgroundBehavior;
-        var oldEditorInput = InputSystem.settings.editorInputBehaviorInPlayMode;
-        var device = InputSystem.AddDevice<Keyboard>();
-        using (var action = new InputAction("Test trigger", InputActionType.Button, "<Keyboard>/space"))
+        Require(!UnityEngine.Object.FindObjectsOfType<WorldPanel>().Any(p=>p.name=="ZXH_UI_Rigging" || p.name=="ZXH_UI_Deck hatch" || p.name=="ZXH_UI_Wheelhouse entrance"),"Old floating device menus remain");
+        var testHand=new GameObject("ZXH temporary physical control test hand");
+        var controller=testHand.AddComponent<ActionBasedController>();
+        var ray=testHand.AddComponent<XRRayInteractor>();ray.xrController=controller;
+        var handle=deck.Lever.Handle.GetComponent<XRSimpleInteractable>();ray.interactionManager=handle.interactionManager;
+        var device=InputSystem.AddDevice<Keyboard>();
+        var oldFocus=InputSystem.settings.backgroundBehavior;
+        var oldEditor=InputSystem.settings.editorInputBehaviorInPlayMode;
+        using(var action=new InputAction("Physical control test trigger",InputActionType.Button,"<Keyboard>/space"))
         {
             try
             {
-                InputSystem.settings.backgroundBehavior = InputSettings.BackgroundBehavior.IgnoreFocus;
-                InputSystem.settings.editorInputBehaviorInPlayMode = InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
-                controller.activateAction = new InputActionProperty(action); action.Enable();
-                var target = button.GetComponent<XRSimpleInteractable>();
-                ray.interactionManager.HoverEnter(ray, target);
-                InputState.Change(device, new KeyboardState());
-                button.ProcessTriggerInput(); deck.AdvanceMotion(1);
-                Require(Mathf.Abs(deck.PortBoomAngle) < .001f, "Hover without trigger changed rigging");
-                InputState.Change(device, new KeyboardState(UnityEngine.InputSystem.Key.Space));
-                Require(action.WasPressedThisFrame(), "Simulated Activate action was not pressed");
-                Require(target.interactorsHovering.Contains(ray), "Temporary ray did not enter button hover");
-                button.ProcessTriggerInput(); deck.AdvanceMotion(1);
-                Require(deck.PortBoomAngle > 4.9f && deck.StarboardBoomAngle > 4.9f, "Original Activate binding did not raise rigging");
-                ray.interactionManager.HoverExit(ray, target);
+                InputSystem.settings.backgroundBehavior=InputSettings.BackgroundBehavior.IgnoreFocus;
+                InputSystem.settings.editorInputBehaviorInPlayMode=InputSettings.EditorInputBehaviorInPlayMode.AllDeviceInputAlwaysGoesToGameView;
+                InputSystem.EnableDevice(device);
+                controller.activateAction=new InputActionProperty(action);action.Enable();
+                testHand.transform.position=deck.Lever.transform.TransformPoint(new Vector3(0,.65f,-.45f));
+                testHand.transform.LookAt(deck.Lever.Handle.position);
+                Vector3 neutral=testHand.transform.position;
+                Vector3 neutralHandle=deck.Lever.Handle.position;
+                ray.interactionManager.HoverEnter(ray,handle);
+                InputState.Change(device,new KeyboardState());
+                deck.Lever.Handle.GetComponent<BoatTriggerAction>().ProcessTriggerInput();
+                Require(deck.Lever.Direction==0,"Hover alone moved the lever");
+                InputState.Change(device,new KeyboardState(UnityEngine.InputSystem.Key.Space));
+                Require(action.WasPressedThisFrame(),"Synthetic Activate did not press");
+                deck.Lever.Handle.GetComponent<BoatTriggerAction>().ProcessTriggerInput();
+                testHand.transform.position=neutral+deck.Lever.transform.right*.2f;
+                deck.Lever.ProcessHeldInput();Require(deck.Lever.Direction==0,"Lateral movement must not reverse the forward/back lever");
+                testHand.transform.position=neutral+deck.Lever.transform.forward*.2f;
+                deck.Lever.ProcessHeldInput();deck.AdvanceMotion(1);
+                Require(deck.Lever.Direction==1 && deck.PortBoomAngle>4.9f,"Pushing held lever forward did not raise rigging");
+                Require(Vector3.Dot(deck.Lever.Handle.position-neutralHandle,deck.Lever.transform.forward)>.1f,"Visible handle moved opposite forward input");
+                testHand.transform.position=neutral;deck.Lever.ProcessHeldInput();float stopped=deck.PortBoomAngle;
+                deck.AdvanceMotion(2);Require(deck.Lever.Direction==0 && Mathf.Abs(deck.PortBoomAngle-stopped)<.001f,"Lever centre did not stop");
+                testHand.transform.position=neutral-deck.Lever.transform.forward*.2f;
+                deck.Lever.ProcessHeldInput();deck.AdvanceMotion(10);
+                Require(deck.Lever.Direction==-1 && Mathf.Abs(deck.PortBoomAngle+10)<.001f,"Lever back did not lower to limit");
+                Require(Vector3.Dot(deck.Lever.Handle.position-neutralHandle,deck.Lever.transform.forward)<-.1f,"Visible handle moved opposite backward input");
+                InputState.Change(device,new KeyboardState());deck.Lever.ProcessHeldInput();
+                Require(deck.Lever.Direction==0,"Releasing trigger did not return lever to stop");
+                ray.interactionManager.HoverExit(ray,handle);
             }
             finally
             {
-                controller.activateAction = saved; InputSystem.RemoveDevice(device); UnityEngine.Object.DestroyImmediate(testHand);
-                InputSystem.settings.updateMode = oldMode;
-                InputSystem.settings.backgroundBehavior = oldFocus;
-                InputSystem.settings.editorInputBehaviorInPlayMode = oldEditorInput;
+                InputSystem.RemoveDevice(device);UnityEngine.Object.DestroyImmediate(testHand);deck.Lever.Stop();
+                InputSystem.settings.backgroundBehavior=oldFocus;InputSystem.settings.editorInputBehaviorInPlayMode=oldEditor;
             }
         }
-        Button("Rigging", "Stop").Press(); float stopped = deck.PortBoomAngle;
-        deck.AdvanceMotion(10); Require(Mathf.Abs(deck.PortBoomAngle - stopped) < .001f, "Stop did not stop motion");
-        Button("Rigging", "Lower").Press(); deck.AdvanceMotion(10);
-        Require(Mathf.Abs(deck.PortBoomAngle + 10) < .001f && Mathf.Abs(deck.StarboardBoomAngle + 10) < .001f, "Lower exceeded/missed limit");
-        Button("Deck hatch", "Raise hatch").Press(); deck.AdvanceMotion(2);
-        var hatch = deck.transform.Find("Original working deck hatch hinge");
-        Require(deck.HatchOpen && Quaternion.Angle(hatch.localRotation, Quaternion.Euler(-65, 0, 0)) < .1f, "Raise hatch button failed");
-        Button("Deck hatch", "Lower hatch").Press(); deck.AdvanceMotion(2);
-        Require(!deck.HatchOpen && Quaternion.Angle(hatch.localRotation, Quaternion.identity) < .1f, "Lower hatch button failed");
-        var collider = button.GetComponent<BoxCollider>(); collider.enabled = true; Physics.SyncTransforms();
-        Vector3 point = button.transform.TransformPoint(collider.center);
-        Require(Physics.Raycast(point - button.transform.forward * .02f, button.transform.forward, out var hit, .04f) && hit.collider == collider, "Button collider cannot be hit");
-        Debug.Log("ZXH BUTTON PASS: simulated XRI hover + Activate; hover alone inert; rigging raise/stop/lower; physical hatch raise/lower and collider hit.");
+        deck.HatchButton.Actuate();deck.AdvanceMotion(2);
+        Require(deck.HatchOpen,"Physical hatch button did not open hatch");
+        deck.HatchButton.Actuate();deck.AdvanceMotion(2);
+        Require(!deck.HatchOpen,"Second hatch press did not close hatch");
+        deck.OuterDoorButton.Actuate();deck.AdvanceMotion(2);Require(deck.CabinDoorOpen,"Outside physical door button failed");
+        deck.InnerDoorButton.Actuate();deck.AdvanceMotion(2);Require(!deck.CabinDoorOpen,"Inside physical door button failed");
+        var cabin=UnityEngine.Object.FindObjectOfType<CabinEnvironment>();
+        Require(GameObject.Find("Port story picture")==null,"Placeholder interpretation picture remains");
+        cabin.SideWindow.Button.Actuate();cabin.SideWindow.Advance(2);
+        Require(cabin.SideWindow.IsOpen && Quaternion.Angle(cabin.SideWindow.Hinge.localRotation,Quaternion.Euler(0,90,0))<.1f,"Right glass window did not open");
+        cabin.SideWindow.Button.Actuate();cabin.SideWindow.Advance(2);
+        Require(!cabin.SideWindow.IsOpen && Quaternion.Angle(cabin.SideWindow.Hinge.localRotation,Quaternion.identity)<.1f,"Right glass window did not close");
+        Require(cabin.SideWindow.Glass.GetComponent<Renderer>().sharedMaterial.color.a<.3f,"Right window glass is opaque");
+        cabin.SeaWindow.Toggle();cabin.SeaWindow.Advance(2);
+        Require(cabin.SeaWindow.IsOpen && Quaternion.Angle(cabin.SeaWindow.Hinge.localRotation,Quaternion.Euler(90,0,0))<.1f,"Sea window did not open");
+        cabin.SeaWindow.Toggle();cabin.SeaWindow.Advance(2);
+        Require(!cabin.SeaWindow.IsOpen && Quaternion.Angle(cabin.SeaWindow.Hinge.localRotation,Quaternion.identity)<.1f,"Sea window did not close");
+        if(System.Array.IndexOf(System.Environment.GetCommandLineArgs(),"-zxh-render-controls")>=0)PhysicalControlPreview.Capture(cabin,deck);
+        Debug.Log("ZXH PHYSICAL CONTROLS PASS: real XRI trigger/lever movement, centre/release stop, lower limit, toggle hatch/door buttons and opening sea window.");
     }
 }
 

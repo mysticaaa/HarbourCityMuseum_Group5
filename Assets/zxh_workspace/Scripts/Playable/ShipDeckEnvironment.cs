@@ -25,7 +25,10 @@ namespace ZxhMuseum
         private float lastPort = float.NaN, lastStarboard = float.NaN;
         private const float OutriggerCut = 3.4f; // Outside the original wheelhouse, not through its walls.
         private Transform portBoom, starboardBoom, door, hatch, winch;
-        private WorldPanel controls;
+        public RiggingLever Lever { get; private set; }
+        public PhysicalPushButton HatchButton { get; private set; }
+        public PhysicalPushButton OuterDoorButton { get; private set; }
+        public PhysicalPushButton InnerDoorButton { get; private set; }
         private CabinEnvironment cabin;
         private bool hatchOpen;
         private float portTarget, starboardTarget;
@@ -64,19 +67,8 @@ namespace ZxhMuseum
                 Box("Deck edge collision "+side,new Vector3(side*2.5f,.7f,-7),new Vector3(.12f,1.4f,12),Color.gray,false);
             Box("Stern edge collision",new Vector3(0,.7f,-13),new Vector3(5,1.4f,.12f),Color.gray,false);
             door=Box("Sliding wheelhouse door",new Vector3(1.2f,3.15f,1.65f),new Vector3(1.1f,2.1f,.08f),new Color(.28f,.29f,.25f)).transform;
-            doorHome=door.localPosition;Select(door.gameObject,ToggleDoor);
-            var doorway=WorldPanel.Create(transform,"Wheelhouse entrance",new Vector3(-.7f,3.1f,1.3f),Quaternion.identity,600);
-            doorway.Status.text="Open the door and walk inside.\nMouse: WASD / right drag. Quest: left stick / teleport.\nDoor and ramp are access additions to the original model.";
-            doorway.Button("Open / close door",ToggleDoor);
-            doorway.Button("Enter cabin (accessible shortcut)",()=>Travel(false));
-            controls=WorldPanel.Create(transform,"Rigging",new Vector3(-1.8f,1.5f,-8.6f),Quaternion.Euler(0,270,0),600);
-            controls.Button("Raise",()=>MoveRigging(true));
-            controls.Button("Stop",StopRigging);
-            controls.Button("Lower",()=>MoveRigging(false));
-            var hatchControls=WorldPanel.Create(transform,"Deck hatch",new Vector3(1.8f,1.5f,-6.8f),Quaternion.Euler(0,90,0),600);
-            hatchControls.Status.text="Point the ray and press the trigger.";
-            hatchControls.Button("Raise hatch",()=>SetHatch(true));
-            hatchControls.Button("Lower hatch",()=>SetHatch(false));
+            doorHome=door.localPosition;
+            BuildPhysicalControls();
             var deckMenu=WorldPanel.Create(transform,"Deck",new Vector3(1.8f,1.5f,-10.2f),Quaternion.Euler(0,90,0),600);
             deckMenu.Status.text="Grip to hold tools. Trigger to operate controls.";
             deckMenu.Button("Reset",ResetDeck);
@@ -90,6 +82,29 @@ namespace ZxhMuseum
             sun.type=LightType.Directional;sun.intensity=.9f;sun.transform.rotation=Quaternion.Euler(35,-35,0);sun.shadows=LightShadows.None;
             var fill=new GameObject("Deck fill light").AddComponent<Light>();fill.transform.SetParent(transform,false);
             fill.transform.localPosition=new Vector3(0,5,-6);fill.type=LightType.Point;fill.range=30;fill.intensity=1.5f;fill.shadows=LightShadows.None;
+        }
+        private void BuildPhysicalControls()
+        {
+            var maker=gameObject.AddComponent<PhysicalBoatControls>();
+            var metal=new Color(.22f,.27f,.28f);
+            // Keep the starboard route past the central hatch clear; the rigging console sits aft.
+            maker.Part("Rigging console pedestal",PrimitiveType.Cube,new Vector3(1.6f,.47f,-11.2f),new Vector3(.55f,.94f,.65f),metal);
+            maker.Part("Rigging console top plate",PrimitiveType.Cube,new Vector3(1.6f,.96f,-11.2f),new Vector3(.6f,.08f,.7f),metal);
+            var leverRoot=new GameObject("Rigging three position control").transform;leverRoot.SetParent(transform,false);
+            leverRoot.localPosition=new Vector3(1.6f,1.0f,-11.2f);
+            var pivot=new GameObject("Rigging lever pivot").transform;pivot.SetParent(leverRoot,false);
+            var shaft=maker.Part("Rigging lever shaft",PrimitiveType.Cylinder,new Vector3(0,.16f,0),new Vector3(.025f,.16f,.025f),Color.gray,pivot);
+            shaft.GetComponent<Collider>().enabled=false;
+            var handle=maker.Part("Rigging lever handle",PrimitiveType.Sphere,new Vector3(0,.34f,0),Vector3.one*.14f,new Color(.85f,.65f,.13f),pivot);
+            maker.Part("Rigging direction nameplate",PrimitiveType.Cube,new Vector3(1.6f,.98f,-11.57f),new Vector3(.5f,.18f,.03f),metal);
+            maker.Label(leverRoot,"FORWARD: UP\nCENTRE: STOP\nBACK: DOWN",new Vector3(0,-.02f,-.39f),.018f,.46f,.15f);
+            Lever=leverRoot.gameObject.AddComponent<RiggingLever>();Lever.Initialize(this,pivot,handle.transform);
+            maker.Button("Rigging emergency stop",new Vector3(1.6f,.7f,-11.55f),Quaternion.identity,"STOP",()=>Lever.Stop());
+            maker.Part("Hatch operating console",PrimitiveType.Cube,new Vector3(-1.65f,.45f,-5.5f),new Vector3(.5f,.9f,.45f),metal);
+            HatchButton=maker.Button("Hatch toggle button",new Vector3(-1.65f,1.0f,-5.76f),Quaternion.identity,"HATCH\nUP / DOWN",ToggleHatch);
+            maker.Part("Door button mounting block",PrimitiveType.Cube,new Vector3(.4f,3.25f,1.66f),new Vector3(.34f,.36f,.44f),metal);
+            OuterDoorButton=maker.Button("Door outside button",new Vector3(.4f,3.25f,1.43f),Quaternion.identity,"DOOR\nOPEN / CLOSE",ToggleDoor);
+            InnerDoorButton=maker.Button("Door inside button",new Vector3(.4f,3.25f,1.88f),Quaternion.Euler(0,180,0),"DOOR\nOPEN / CLOSE",ToggleDoor);
         }
         public void ToggleDoor()
         {
@@ -191,20 +206,20 @@ namespace ZxhMuseum
                         MeshDoorwayCut.Apply(baked,new Bounds(new Vector3(1.2f,3.15f,1.9f),new Vector3(1.24f,2.2f,2.4f)));
                         MeshDoorwayCut.Apply(baked,new Bounds(new Vector3(1.2f,2.16f,-.05f),new Vector3(1.24f,4.08f,3.3f)));
                         MeshDoorwayCut.Apply(baked,new Bounds(new Vector3(0,3.15f,5.3f),new Vector3(3.96f,2.12f,6.6f)));
+                        // Starboard opening aligned with CabinEnvironment's right glass window.
+                        MeshDoorwayCut.Apply(baked,new Bounds(new Vector3(2.5f,3.64f,5f),new Vector3(1.6f,.88f,1.2f)));
                     }
                     else MeshDoorwayCut.Compact(baked);
                     if(baked.vertexCount==0)continue;
                     var item=new GameObject("Exhibition geometry "+filter.name+"_"+group);item.transform.SetParent(parent,false);
                     item.AddComponent<MeshFilter>().sharedMesh=baked;item.AddComponent<MeshRenderer>().sharedMaterials=renderer.sharedMaterials;
                     var collider=item.AddComponent<MeshCollider>();collider.sharedMesh=baked;
-                    if(group==1 || group==2){bool port=group==1;Select(item,()=>SetBoom(port,(port?portTarget:starboardTarget)+5));}
-                    else if(group==3){HasOriginalHatch=true;Select(item,ToggleHatch);}
+                    if(group==3){HasOriginalHatch=true;}
                     else if(group==4){HasOriginalWinch=true;Select(item,TurnWinch);}
                     else if(group>=5)
                     {
                         bool port=group==5;
                         ropes.Add(new SupportRope{mesh=baked,home=baked.vertices,collider=collider,port=port});
-                        Select(item,()=>SetBoom(port,(port?portTarget:starboardTarget)+5));
                     }
                     // Fixed hull/mast meshes keep collision only; no inspection menu or replica.
                 }
@@ -246,6 +261,7 @@ namespace ZxhMuseum
         }
         public void ResetDeck()
         {
+            if(Lever!=null)Lever.Stop();
             portTarget=starboardTarget=0;hatchOpen=false;
             if(CabinDoorOpen)ToggleDoor();
             if(winch!=null)winch.localRotation=Quaternion.identity;
@@ -254,7 +270,7 @@ namespace ZxhMuseum
         private void Update() => AdvanceMotion(Time.deltaTime);
         public void AdvanceMotion(float seconds)
         {
-            if(controls==null)return;
+            if(portBoom==null || starboardBoom==null)return;
             PortBoomAngle=Mathf.MoveTowards(PortBoomAngle,portTarget,seconds*5);
             StarboardBoomAngle=Mathf.MoveTowards(StarboardBoomAngle,starboardTarget,seconds*5);
             portBoom.localRotation=Quaternion.Euler(0,0,-PortBoomAngle);starboardBoom.localRotation=Quaternion.Euler(0,0,StarboardBoomAngle);
@@ -278,7 +294,9 @@ namespace ZxhMuseum
             }
             door.localPosition=Vector3.MoveTowards(door.localPosition,doorHome+(CabinDoorOpen?Vector3.right*1.2f:Vector3.zero),seconds);
             hatch.localRotation=Quaternion.RotateTowards(hatch.localRotation,Quaternion.Euler(hatchOpen?-65:0,0,0),seconds*60);
-            controls.Status.text="Point + trigger\nLeft "+PortBoomAngle.ToString("F0")+" / Right "+StarboardBoomAngle.ToString("F0")+" degrees";
+            if(HatchButton!=null)HatchButton.SetIndicator(HatchOpen);
+            if(OuterDoorButton!=null)OuterDoorButton.SetIndicator(CabinDoorOpen);
+            if(InnerDoorButton!=null)InnerDoorButton.SetIndicator(CabinDoorOpen);
         }
         private void OnDestroy(){foreach(var mesh in meshes)if(mesh!=null)Destroy(mesh);foreach(var mat in materials)if(mat!=null)Destroy(mat);}
     }
