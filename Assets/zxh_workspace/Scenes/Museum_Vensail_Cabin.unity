@@ -435,7 +435,7 @@ PrefabInstance:
       objectReference: {fileID: 2100000, guid: c41a9e3c8b2e14799b98429755a8e01c, type: 2}
     - target: {fileID: 919132149155446097, guid: e3b879d72c6104e229866a870a309ea5, type: 3}
       propertyPath: m_Name
-      value: DivingHelmet 1
+      value: DivingHelmet
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5914,7 +5914,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -6689036041284674117, guid: 9acfef32bb3864e1aa7eebce32e30972, type: 3}
       propertyPath: m_Name
-      value: wip_-_exhibition_room
+      value: ExhibitionRoom
       objectReference: {fileID: 0}
     - target: {fileID: -2493022514415820006, guid: 9acfef32bb3864e1aa7eebce32e30972, type: 3}
       propertyPath: m_Mesh
