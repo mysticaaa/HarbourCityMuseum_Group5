@@ -43,6 +43,8 @@ namespace Wjy.Museum
         private Quaternion homeRotation, returnRotation;
         private float returnTime, lastSampleTime, flightTime;
         private bool triggerReady;
+        private XRRayInteractor forceGrabRay;
+        private bool previousForceGrab;
         public RodState State { get; private set; }
         public XRRayInteractor HoldingRay => holdingHand?.ray;
         public Vector3 HookPosition => hook.position;
@@ -75,8 +77,15 @@ namespace Wjy.Museum
             }
             foreach (var ray in sharedRig.GetComponentsInChildren<XRRayInteractor>(true))
             {
-                if (ray.name.Contains("Left")) hands.Add(new Hand { ray = ray, node = XRNode.LeftHand });
-                else if (ray.name.Contains("Right")) hands.Add(new Hand { ray = ray, node = XRNode.RightHand });
+                // Sample rigs name the ray "Ray Interactor"; the handedness is on an ancestor.
+                // Hand-tracking rays are intentionally excluded from controller Grip polling.
+                for (var ancestor = ray.transform; ancestor && ancestor != sharedRig.transform; ancestor = ancestor.parent)
+                {
+                    if (ancestor.name.Contains("Left Controller"))
+                    { hands.Add(new Hand { ray = ray, node = XRNode.LeftHand }); break; }
+                    if (ancestor.name.Contains("Right Controller"))
+                    { hands.Add(new Hand { ray = ray, node = XRNode.RightHand }); break; }
+                }
             }
             SetState(RodState.Display, "GRIP: pick up\nTRIGGER: hold, swing, release");
             RestHook();
@@ -118,7 +127,7 @@ namespace Wjy.Museum
             return device.TryGetFeatureValue(axis, out float value) && value >= .65f;
         }
 
-        // Called only on the Grip rising edge. No bindings or shared controller fields are changed.
+        // Called only on the Grip rising edge. Shared input bindings remain unchanged.
         public bool TryGrip(XRRayInteractor ray)
         {
             if (!ray || State != RodState.Display || holdingHand != null || ray.hasSelection
@@ -136,11 +145,15 @@ namespace Wjy.Museum
             grab.interactionManager = manager;
             grab.AuthorizedRay = ray;
             if (!manager.IsSelectPossible(ray, grab)) { grab.AuthorizedRay = null; return false; }
+            forceGrabRay = ray;
+            previousForceGrab = ray.useForceGrab;
+            ray.useForceGrab = true; // Grip brings only this exhibit to the hand.
             ray.StartManualInteraction((IXRSelectInteractable)grab);
             if (!grab.IsSelected(ray))
             {
                 if (ray.isPerformingManualInteraction) ray.EndManualInteraction();
                 grab.AuthorizedRay = null;
+                RestoreForceGrab();
                 return false;
             }
             return true;
@@ -167,6 +180,7 @@ namespace Wjy.Museum
         private void OnReleased(SelectExitEventArgs args) => BeginReturn();
         private void BeginReturn()
         {
+            RestoreForceGrab();
             holdingHand = null;
             grab.AuthorizedRay = null;
             triggerReady = false;
@@ -179,6 +193,12 @@ namespace Wjy.Museum
             body.useGravity = false;
             body.isKinematic = true;
             SetState(RodState.Returning,"Returning to display");
+        }
+
+        private void RestoreForceGrab()
+        {
+            if (forceGrabRay) forceGrabRay.useForceGrab = previousForceGrab;
+            forceGrabRay = null;
         }
 
         private void ProcessTrigger(bool pressed, bool released)

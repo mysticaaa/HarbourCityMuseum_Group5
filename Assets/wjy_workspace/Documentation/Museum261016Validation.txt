@@ -1,0 +1,37 @@
+PASS: New fishing rod exists in running scene
+PASS: Exactly one active XR Rig
+PASS: Exactly one effective interaction manager
+PASS: Rod rotation is independent of helmet and boat scripts
+PASS: Visible hook mesh and guided fishing line
+PASS: Uses existing left and right rays
+PASS: Trigger alone cannot select rod (hand 0)
+PASS: Aimed Grip starts manual selection (hand 0)
+PASS: Rod is held through shared XR manager
+PASS: Rod and shared ray use same manager
+PASS: Held rod follows controller rotation
+PASS: Trigger press arms cast
+PASS: No cast without a swing
+PASS: Swing followed by Trigger release launches hook
+PASS: Flying hook is independent of subsequent hand movement
+PASS: Fishing line remains connected to flying/landed hook
+PASS: Shared controller select binding unchanged
+PASS: Ray force-grab setting restored after releasing fish exhibit
+PASS: Grip release ends selection
+PASS: Release returns rod to its display
+PASS: Hook returns with rod
+PASS: Trigger alone cannot select rod (hand 1)
+PASS: Aimed Grip starts manual selection (hand 1)
+PASS: Rod is held through shared XR manager
+PASS: Rod and shared ray use same manager
+PASS: Held rod follows controller rotation
+PASS: Trigger press arms cast
+PASS: No cast without a swing
+PASS: Swing followed by Trigger release launches hook
+PASS: Flying hook is independent of subsequent hand movement
+PASS: Fishing line remains connected to flying/landed hook
+PASS: Shared controller select binding unchanged
+PASS: Ray force-grab setting restored after releasing fish exhibit
+PASS: Grip release ends selection
+PASS: Release returns rod to its display
+PASS: Hook returns with rod
+ALL CHECKS PASSED (simulated controllers; physical Quest test still required).
