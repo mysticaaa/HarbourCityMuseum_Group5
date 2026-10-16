@@ -1,28 +1,44 @@
-# 鱼竿展品
+# 老式竹木鱼竿：Grip 抓取与 Trigger 抛竿
 
-打开本目录上级的 `Museum.unity`。
+场景：`Assets/wjy_workspace/Museum.unity`。
+展位：`WJY_FishingRodStation`，位置约 `(3.2, 0.143, -0.75)`。
 
-- 新展位：`WJY_FishingRodStation`，位于头盔另一侧，坐标约 `(3.2, 0.143, -0.75)`。
-- 鱼竿约 2.20 米高，竖直放置；底端离地约 1.00 米，比展台顶面高约 0.40 米。
-- 白色展台沿用现有头盔展台的网格和尺寸，宽深约 0.714 米、高约 0.453 米，独立于旋转父节点。
-- 运行时由 `ExhibitAutoRotation` 的同一个 `FixedUpdate` 函数旋转，默认 15°/秒；头盔和渔船继续使用原有组件。
-- 新增展示灯只服务鱼竿展位。
+## 模型
 
-## 调节房间长度
+鱼竿已重新制作为独立的约 2.1 米竹木钓竿：竹节竿身、缠线、软木握柄、黄铜卷线轮和摇柄、导线环、鱼线、带眼及倒刺的 J 形鱼钩。几何由本目录的编辑器构建脚本生成，没有继续使用原 Poly Pizza 模型。
 
-在 Hierarchy 选中 `wip_-_exhibition_room`，修改 `Museum Room Length` 组件中的 `Length Metres`。
-当前长度约 20.208 米，由原先约 16.166 米增加 25%。该组件仅调整房间壳体 `PIECE` 的水平长度，不缩放展台、头盔、渔船或鱼竿；房间宽度和高度保持原值。缩短后需要自行确认展品仍位于墙内。
+- `Models/TraditionalFishingRod/TraditionalBambooRod.asset`：新竿身及卷线轮网格。
+- `Models/TraditionalFishingRod/FishingHook.asset`：新鱼钩网格。
+- `Prefabs/TraditionalFishingRodExhibit.prefab`：展台、鱼竿、水池和展示灯。
+- 鱼线由 `LineRenderer` 沿卷线轮、导线环、竿尖和鱼钩实时绘制。
 
-## 模型与授权
+旧 OBJ、MTL、GLB、旧模型材质、旧鱼竿预制体及其署名文件已移除。
 
-采用 Justin Randall 的公开模型 Fishing rod，来源：https://poly.pizza/m/9gXWYDqB6vt 。
-保留原始 GLB，并转换为 OBJ，调整尺寸、底部轴心和竹木／黄铜／软木配色，制作复古风格展品。这是艺术改制，不是经过历史考证的古董扫描模型。
-完整署名与 CC BY 3.0 授权链接见 `Models/FishingRod/ATTRIBUTION.md`；分发项目时保留该文件。
+## 操作
 
-## 验证
+1. 使用现有左手或右手射线指向鱼竿，按住 **Grip** 拿起。竿柄贴合手柄，自动旋转停止。
+2. 保持 Grip，移动或转动手柄，查看竿身、鱼线、鱼钩和卷线轮。
+3. 保持 Grip，按住 **Trigger**，挥动鱼竿后松开 Trigger，鱼钩沿抛物线飞向小水池，鱼线持续连接竿尖与鱼钩。
+4. 没有挥动时松开 Trigger 不抛竿。刚抓取时已按住的 Trigger 不会直接触发抛竿，需先松开再按。
+5. 鱼钩入水后可再次按住 Trigger、挥动并松开重新抛竿。
+6. 松开 Grip 自动收回鱼钩并归位展台，恢复展示旋转。手柄断连或应用失焦也会释放鱼竿。
 
-在 Unity 2022.3.62f3 的独立项目副本中完成导入、场景保存和渲染，避免原项目自动初始化脚本改写其他资源。
-对三个展品的共享旋转组件各执行 100 次 `FixedUpdate`，均旋转 30°，暂停检查通过。详见 `rotation-report.txt`。
-这些是旋转函数和场景渲染检查；没有完成 Quest 3 设备实测。
+这是馆内定点练习：挥动方向改变池内落点，挥动速度影响飞行速度，落点辅助限制在水池范围内。本版本没有增加钓鱼、咬钩或摇轮收线玩法。
 
-可选的 `WJY > Museum > Rebuild fishing rod exhibit` 菜单可重新生成鱼竿展位，会替换当前鱼竿展位并保存此场景。
+## 共用与独立范围
+
+共用当前场景已有的 `XR Origin (XR Rig)`、Main Camera、左右 XRRayInteractor 和有效 XRInteractionManager；没有新增 Rig 或摄像头。
+
+- `Scripts/FishingRod/WjyFishingRodGrab.cs`：鱼竿专用的抓取对象，阻止 Trigger 单独选中鱼竿。
+- `Scripts/FishingRod/WjyFishingRodInteraction.cs`：读取左右 XR 手柄的 Grip/Trigger；通过原有射线的手动选择接口抓取；实现展示旋转、抛钩、鱼线和归位。
+- 共享的 `QuestExhibitSetup.cs` 会把控制器选择键设为 Trigger；本实现没有修改它或共享 Input Actions。鱼竿通过独立 Grip 桥接兼容此设置。
+- 头盔和船的模型、交互脚本、按键及共享预制体保持原样。鱼竿不再依赖它们的 `ExhibitAutoRotation`、`HelmetHandInspection` 或 `ShipDetailInspection`。
+
+房间长度组件保持现有设置；本次没有修改房间尺寸。
+
+## 验证与重建
+
+使用 Unity 2022.3.62f3 在本目录内的物理隔离副本进行编译、场景渲染及 Play 模式的左右控制器模拟测试，避免原项目自动初始化过程改写其他目录。
+结果见 `FishingRodValidation.txt`。模拟测试不能替代实际 Quest 3 的握持姿态、抛竿手感及震动检查。
+
+`WJY > Museum > Rebuild traditional fishing rod` 可以重建此展位，会替换鱼竿展位并保存目标场景。预制体的 Shared Rig 是场景引用，手动将预制体拖入其他场景后，需给该字段指定那里的既有主 XR Origin。

@@ -1,4 +1,0 @@
-Room shell length=20.208m
-Rod bounds=(3.194, 2.100, -0.697)/(0.062, 2.201, 0.167)
-Pedestal bounds=(3.200, 0.372, -0.750)/(0.714, 0.453, 0.714)
-Rotators=3
