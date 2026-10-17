@@ -5,15 +5,18 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 1
+  - enabled: 0
     path: Assets/Scenes/Museum.unity
     guid: d6b0133d6731dcf4c813a8992f3afdca
-  - enabled: 1
+  - enabled: 0
     path: Assets/vensail_workspace/Scenes/Ship_vensail.unity
-    guid: 256a2179968c94f4c88f49466975634e
-  - enabled: 1
+    guid: ae9e406103c214a12903bedd2981916c
+  - enabled: 0
     path: Assets/zxh_workspace/Scenes/Museum_Vensail_Cabin.unity
     guid: 017f56e509152cb41bbac40b05e93e94
+  - enabled: 1
+    path: Assets/261016/Museum_261016_3.unity
+    guid: 6c2b4d3608458a14ebdb4004b2f763f3
   - enabled: 1
     path: Assets/zxh_workspace/Scenes/ShipInterior.unity
     guid: 2ec649a2ef47f0345b0b7025f3ef46f8
