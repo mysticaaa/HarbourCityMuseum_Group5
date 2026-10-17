@@ -9,6 +9,7 @@ namespace ZzxWorkspace.FirstDay
         public TMP_Text feedback;
         public TMP_Text progress;
         public GameObject ending;
+        public bool concisePresentation;
         public bool IsComplete { get; private set; }
         public int Attempts { get; private set; }
         private int lastFrame = -1;
@@ -21,13 +22,15 @@ namespace ZzxWorkspace.FirstDay
             if (berth == 2)
             {
                 IsComplete = true;
-                feedback.text = "BERTH 02 - YOU FOUND HIS FIRST WORKPLACE\nThe letter mentions cargo work; the pass confirms Berth 02.";
+                feedback.text = concisePresentation ? "BERTH 02 / Liang's first workplace." : "BERTH 02 - YOU FOUND HIS FIRST WORKPLACE\nThe letter mentions cargo work; the pass confirms Berth 02.";
                 progress.text = "JOURNEY COMPLETE / Read what happened next";
                 ending.SetActive(true);
             }
             else
             {
-                feedback.text = berth == 1
+                feedback.text = concisePresentation
+                    ? (berth == 1 ? "The ferry was his arrival point. Where did he work?" : "The repair yard was not his workplace. Check his pass.")
+                    : berth == 1
                     ? "TRY AGAIN / The ferry landing is where he arrived.\nHis work pass identifies a different berth."
                     : "TRY AGAIN / The repair yard services boats.\nLook for the cargo berth number on his work pass.";
                 progress.text = "COMPARE THE LETTER + WORK PASS / Then choose again";
@@ -39,8 +42,8 @@ namespace ZzxWorkspace.FirstDay
             Attempts = 0;
             lastFrame = -1;
             if (ending != null) ending.SetActive(false);
-            if (feedback != null) feedback.text = "Where did Liang report for work?\nUse the letter and work pass to choose a berth on the map.";
-            if (progress != null) progress.text = "01 READ THE LETTER / 02 CHECK THE PASS / 03 FIND THE BERTH";
+            if (feedback != null) feedback.text = concisePresentation ? "" : "Where did Liang report for work?\nUse the letter and work pass to choose a berth on the map.";
+            if (progress != null) progress.text = concisePresentation ? "" : "01 READ THE LETTER / 02 CHECK THE PASS / 03 FIND THE BERTH";
         }
     }
 }
