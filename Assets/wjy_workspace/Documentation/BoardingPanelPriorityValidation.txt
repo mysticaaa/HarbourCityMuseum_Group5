@@ -1,0 +1,10 @@
+PASS: Boat blocks button before menu priority
+PASS: Menu ray hits button through boat geometry
+PASS: Both shared rays prioritize UI while menu is open
+PASS: Boat physical collider stays enabled
+PASS: Existing physical-button input path unchanged
+PASS: Original button callback still executes once
+PASS: Closing menu restores each ray's exact original mask
+PASS: Closing menu restores original button layer
+PASS: Disabling adapter also restores masks
+ALL CHECKS PASSED. Physics and callbacks checked in isolated editor; physical Quest test still required.
