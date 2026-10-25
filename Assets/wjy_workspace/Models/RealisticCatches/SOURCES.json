@@ -1,0 +1,72 @@
+[
+  {
+    "kind": "Fish",
+    "title": "Fish",
+    "author": "Yimit",
+    "authorUrl": "https://sketchfab.com/yimit",
+    "url": "https://sketchfab.com/3d-models/fish-c4328d6c1ae445198abc1a3d4c1e2570",
+    "license": "http://creativecommons.org/licenses/by/4.0/",
+    "triangles": 2277,
+    "sourceSha256": "f49762eb1e380c2497a0567b3c0a6de06e4f80866786fed63da50f51fd7921ac"
+  },
+  {
+    "kind": "Turtle",
+    "title": "Sea Turtle",
+    "author": "Ignas",
+    "authorUrl": "https://sketchfab.com/Ignas3D",
+    "url": "https://sketchfab.com/3d-models/sea-turtle-ddb6789834f0412090863e8fd3c0c4db",
+    "license": "http://creativecommons.org/licenses/by/4.0/",
+    "triangles": 14076,
+    "sourceSha256": "abe632b4eec6d83de68cc1ac3668895535a3dbf60c1769fd7cb01f6ffc752935"
+  },
+  {
+    "kind": "Crab",
+    "title": "Dancing Crab - Uca Mjoebergi",
+    "author": "Bohdan Lvov",
+    "authorUrl": "https://sketchfab.com/ostapblendercg",
+    "url": "https://sketchfab.com/3d-models/dancing-crab-uca-mjoebergi-280863886fee409ab3c8168f07caa89f",
+    "license": "http://creativecommons.org/licenses/by/4.0/",
+    "triangles": 3084,
+    "sourceSha256": "ac433d38f4063807118cc6450ee597e0e4d4807b51ab82e233dea83738c09ebf"
+  },
+  {
+    "kind": "Trash",
+    "title": "Coca Cola Bottle",
+    "author": "Yanez Designs",
+    "authorUrl": "https://sketchfab.com/Yanez-Designs",
+    "url": "https://sketchfab.com/3d-models/coca-cola-bottle-69dc15f696f04e85a11df4ec4658d907",
+    "license": "http://creativecommons.org/licenses/by/4.0/",
+    "triangles": 2880,
+    "sourceSha256": "b490ce3b111f101dd13281113e827b5cd0de10b5024c171eda93f95d06f0fad5"
+  },
+  {
+    "kind": "Lobster",
+    "title": "Lobster",
+    "author": "victorberdugo1",
+    "authorUrl": "https://sketchfab.com/victorberdugo1",
+    "url": "https://sketchfab.com/3d-models/lobster-be14763ae7c04368b7de1dd09e42e6ba",
+    "license": "http://creativecommons.org/licenses/by/4.0/",
+    "triangles": 10275,
+    "sourceSha256": "125d61c4a9607fcf927faf4756ae6f01a43cca857b321e23153e4cafba5f25d4"
+  },
+  {
+    "kind": "Seal",
+    "title": "Dotted White Seal - Free Giveaway",
+    "author": "Kugatsu Tsukai 3D Model Hub",
+    "authorUrl": "https://sketchfab.com/KugatsuT",
+    "url": "https://sketchfab.com/3d-models/dotted-white-seal-free-giveaway-676115a924214e8289b9e03fb9b9a4ab",
+    "license": "http://creativecommons.org/licenses/by/4.0/",
+    "triangles": 5404,
+    "sourceSha256": "f8231d9a9887bdedf6d86c4eb7e8c1b2e4ea91ecb8bcfbe794206b08c42bea25"
+  },
+  {
+    "kind": "Whale",
+    "title": "Game-ready Humpback Whale",
+    "author": "Allie2k",
+    "authorUrl": "https://sketchfab.com/Allie2k",
+    "url": "https://sketchfab.com/3d-models/game-ready-humpback-whale-da07e3ff73914ff28d2b8cf9da794036",
+    "license": "http://creativecommons.org/licenses/by/4.0/",
+    "triangles": 4968,
+    "sourceSha256": "3d00cc06cca2b6550c17381143ac52e78b255fd8f548c7e1ecdb4260e6aec381"
+  }
+]
