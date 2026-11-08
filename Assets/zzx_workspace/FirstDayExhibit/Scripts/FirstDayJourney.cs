@@ -13,7 +13,15 @@ namespace ZzxWorkspace.FirstDay
         public bool IsComplete { get; private set; }
         public int Attempts { get; private set; }
         private int lastFrame = -1;
-        private void OnEnable() { ResetJourney(); }
+        private void OnEnable()
+        {
+            if (gameObject.scene.path == HarbourTabletopPrototype.TargetScene)
+            {
+                if (!GetComponent<HarbourTabletopPrototype>()) gameObject.AddComponent<HarbourTabletopPrototype>();
+                return;
+            }
+            ResetJourney();
+        }
         public void Choose(int berth)
         {
             if (IsComplete || lastFrame == Time.frameCount) return;

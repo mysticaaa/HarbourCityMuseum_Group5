@@ -1,0 +1,1 @@
+PASS: feedback centred over map; RESET visible on completion, berth=0 wired to existing journey; collider in front of panel; ending text fits; reset closes ending, clears answer and feedback.

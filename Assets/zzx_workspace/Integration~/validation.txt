@@ -1,0 +1,2 @@
+PASS: one active XR rig, shared camera, one active manager; existing controller rays share manager; six added interactables explicitly bound; two local hint scripts; no missing scripts in new exhibit.
+PASS Play mode: both wrong answers, correct answer, completion lock, restart; left and right XR controller ray selection/release for both documents; return position and kinematic reset. Programmatic XR transitions, not hardware input.

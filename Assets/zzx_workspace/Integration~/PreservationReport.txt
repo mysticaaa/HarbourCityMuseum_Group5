@@ -1,0 +1,4 @@
+PASS: all pre-existing scene objects retained byte-for-byte.
+PASS: only target scene changed among baseline Assets, Packages and ProjectSettings files.
+PASS: no duplicate scene file IDs.
+PASS: exhibit renderer bounds [5.4, 0.14999999999999997, -0.52] to [6.16, 2.23, 1.52]; inside room bounds, beyond existing fishing basin x=4.45.

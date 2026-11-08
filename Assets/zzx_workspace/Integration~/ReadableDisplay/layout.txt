@@ -1,0 +1,28 @@
+Title font=0.78 overflow=False text=FIRST DAY IN THE HARBOUR
+Introduction font=0.48 overflow=False text=Liang is a migrant dockworker arriving in 1958.
+Where is his first workplace? Read his letter home
+and work pass, then choose a berth on the map.
+Task feedback font=0.34 overflow=False text=
+Document text font=0.39 overflow=False text=Dear Mei,
+I arrived by ferry this morning.
+Tomorrow I will carry cargo at
+the berth written on my pass.
+I found a bed on Dock Street,
+a short walk from the harbour.
+When wages come, I will send
+money home.
+Liang
+Document text font=0.42 overflow=False text=LIANG CHEN
+Cargo handling / Day shift
+REPORT TO BERTH 02
+Issued 14 May 1958
+Label font=0.48 overflow=False text=01
+FERRY
+Label font=0.48 overflow=False text=02
+CARGO
+Label font=0.48 overflow=False text=03
+REPAIR
+Label font=0.36 overflow=False text=RESTART
+Letter sign font=0.4 overflow=False text=LETTER HOME
+Pass sign font=0.4 overflow=False text=WORK PASS
+Map sign font=0.53 overflow=False text=HARBOUR MAP
