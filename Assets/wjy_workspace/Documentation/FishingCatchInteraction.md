@@ -7,6 +7,10 @@ The new station preserves the scene's shared XR Rig, camera, controllers and int
 
 ## Controls and behaviour
 
+- The front of the rod pedestal displays **Start the Fishing Experience (7 Surprises!)** below the button instructions. The water basin is hidden until the rod is picked up, then fades in. Once the rod finishes returning to the stand, the basin stays visible for 5 seconds before fading out. Picking up the rod again cancels the countdown or reverses an in-progress fade.
+- The enlarged white pedestal uses a fitted, non-interactive text area so long instructions wrap and stay on its front face.
+- To teleport, aim either controller ray at a cyan floor ring and press that controller's **index Trigger** once. Rings are placed in front of the fishing rod, diving helmet, fishing boat, First Day exhibit, and the four video screens. The targeted ring turns green. The player lands in the center, facing the same direction. While holding the rod, Trigger still controls fishing.
+- The **Museum Menu** is hidden by default. Open or close it with the left **Y**, right **B**, or keyboard **M**. The large **Resume** button closes the menu; the smaller **Quit** button is at the bottom. The old camera-following Quit canvas is disabled at runtime in this scene. While the menu is open, fishing and teleport inputs do not compete with its buttons.
 - Aim at the rod and hold **Grip** to pick it up and stop its display rotation.
 - While holding Grip, hold **Trigger**, swing, then release Trigger to cast into the pool.
 - The float is absent on display, in the hand and during flight. On water entry, it appears upright and bobs. It smoothly drifts toward random points inside the pool, at 0.14 metres per second, with a margin from the edges. The fishing line and submerged hook follow it. Its drift uses a separate random stream from the bite roll.
@@ -21,6 +25,7 @@ The new station preserves the scene's shared XR Rig, camera, controllers and int
 
 ## Implementation
 
+- The fishing exhibit prefab owns the teleport marker and input routing. It uses the existing controller rays and Unity XR Interaction Toolkit's `TeleportationProvider` for the move. While the marker is active, the left and right controller rays keep their normal reach instead of retracting when aiming at the floor. The marker snaps to the floor at play time and adds no collider to the walkway. Nearer geometry and UI still block the ray; a blocked landing prevents teleportation.
 - `Scripts/FishingRod/WjyFishingRodCatchInteraction.cs`: independent catch state machine, timed probability, float movement, haptics, reeling and line routing.
 - `Scripts/FishingRod/WjyFishingCatchVisuals.cs`: locally generated float/fish geometry and a camera-facing result panel. All model creation code is inside this workspace. No permanent float is added to the rod model.
 - `Scripts/FishingRod/WjyFishingCatchCatalog.cs`: loads the seven downloaded model prefabs from `Resources/WjyFishingCatches`, assigns catch labels and displays exactly one at the hook. The earlier procedural catalog remains only as a fallback if model resources are missing.

@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 771015486933773891}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: -0.00000004371139}
-  m_LocalPosition: {x: 0, y: 0.33, z: 0.365}
+  m_LocalPosition: {x: 0, y: 0.29, z: 0.366}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -83,11 +83,9 @@ TextMesh:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 771015486933773891}
-  m_Text: 'GRIP: pick up
-
-    TRIGGER: hold, swing, release'
+  m_Text: "GRIP: pick up\nTRIGGER: hold, swing, release\n<b>Start the Fishing Experience</b>\n(7 Surprises!)"
   m_OffsetZ: 0
-  m_CharacterSize: 0.009
+  m_CharacterSize: 0.0048
   m_LineSpacing: 1
   m_Anchor: 4
   m_Alignment: 1
@@ -127,7 +125,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: -0.5, z: -0.5, w: -0.5}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.3380308, y: 1.3380313, z: 1.3380313}
+  m_LocalScale: {x: 1.3380308, y: 1.67, z: 1.7}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6977367090542049945}
@@ -334,7 +332,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -345,7 +343,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2226061187828928316}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -714,7 +712,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -725,7 +723,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4844786152443389884}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -819,7 +817,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -830,7 +828,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4878325760961320885}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1043,7 +1041,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -1054,7 +1052,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5230579459743383560}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1148,7 +1146,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -1159,7 +1157,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5586353669461479766}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1223,7 +1221,7 @@ Transform:
   m_GameObject: {fileID: 5754527042260869434}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.8573, z: 0}
+  m_LocalPosition: {x: 0, y: 0.582, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -1510,6 +1508,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6977367090542049945}
+  - component: {fileID: 5329691700939186257}
+  - component: {fileID: 7135503362947338827}
+  - component: {fileID: 6537334100072984210}
   m_Layer: 0
   m_Name: TraditionalFishingRodExhibit
   m_TagString: Untagged
@@ -1542,6 +1543,42 @@ Transform:
   - {fileID: 5212681534398677563}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5329691700939186257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7231517614401119197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2b76d67e84646079a5d5192c37a329c, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  rod: {fileID: 2770576674485180862}
+  markerShader: {fileID: 4800000, guid: f258b3a639a84229889d9e49b9580381, type: 3}
+  localLanding: {x: 0, y: 0, z: 1.25}
+  radius: 0.43
+  exhibitLandings:
+  - name: Diving Helmet
+    position: {x: -0.65233, y: 0.13, z: 0.65}
+  - name: Fishing Boat
+    position: {x: -4.618, y: 0.13, z: 1.05}
+  - name: First Day Exhibit
+    position: {x: 6.5, y: 0.13, z: 0.95}
+--- !u!114 &7135503362947338827
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7231517614401119197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2bf5ce651a55474c90c91d49a8f33fd7, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  rod: {fileID: 2770576674485180862}
 --- !u!1 &8604480784869723005
 GameObject:
   m_ObjectHideFlags: 0
@@ -1601,7 +1638,7 @@ BoxCollider:
   m_LayerOverridePriority: 0
   m_IsTrigger: 0
   m_ProvidesContacts: 0
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
@@ -1612,7 +1649,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8604480784869723005}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -1789,3 +1826,25 @@ LineRenderer:
   m_UseWorldSpace: 1
   m_Loop: 0
   m_ApplyActiveColorSpace: 1
+--- !u!114 &6537334100072984210
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7231517614401119197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4f95aaf307f4ed39a87380d20f78c84, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  rod: {fileID: 2770576674485180862}
+  surfaces:
+  - {fileID: 666527595438930195}
+  - {fileID: 677400867757592097}
+  - {fileID: 1766847633019064854}
+  - {fileID: 2741419254413444695}
+  - {fileID: 71724681197741227}
+  - {fileID: 1264439820076509259}
+  woodFade: {fileID: 2100000, guid: ce19ecbb6ab54abb917588aa914bc566, type: 2}
+  waterFade: {fileID: 2100000, guid: 1fe558283acb4576921fac6a38bc5f11, type: 2}

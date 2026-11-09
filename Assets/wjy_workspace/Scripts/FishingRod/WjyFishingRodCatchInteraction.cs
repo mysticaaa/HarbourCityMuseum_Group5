@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.XR;
 using UnityEngine.XR.Interaction.Toolkit;
 using Unity.XR.CoreUtils;
@@ -11,6 +12,8 @@ namespace Wjy.Museum
     {
         public enum RodState { Display, Held, Charging, Flying, InWater, Returning, FishHooked, NoBite, Reeling, Escaped }
         private WjyFishingCatchVisuals visuals;
+        private Text pedestalInstructions;
+        private WjyMuseumPauseMenu menu;
         private float waterElapsed, reelTime, nextHaptic;
         private Vector3 waterLanding, reelStart;
         private Vector3 driftPosition, driftTarget;
@@ -104,6 +107,8 @@ namespace Wjy.Museum
             }
             visuals = new WjyFishingCatchVisuals();
             visuals.Create(transform, hook, homeParent, rodTip, lineGuides);
+            menu = homeParent ? homeParent.GetComponent<WjyMuseumPauseMenu>() : null;
+            CreatePedestalInstructions();
             SetState(RodState.Display, "GRIP: pick up\nTRIGGER: hold, swing, release");
             RestHook();
             DrawLine();
@@ -114,6 +119,7 @@ namespace Wjy.Museum
 #if UNITY_EDITOR
             if(EditorSkipDevicePolling)return;
 #endif
+            bool menuOpen = menu && menu.IsOpen;
             foreach (var hand in hands)
             {
                 var device = InputDevices.GetDeviceAtXRNode(hand.node);
@@ -124,6 +130,12 @@ namespace Wjy.Museum
                 {
                     if (!connected || !gripDown || !hand.ray.isActiveAndEnabled)
                         ReleaseGrip();
+                    else if (menuOpen)
+                    {
+                        triggerReady = false;
+                        if (State == RodState.Charging)
+                            SetState(RodState.Held, "Hold TRIGGER and swing to cast");
+                    }
                     else
                     {
                         if (!triggerDown) triggerReady = true;
@@ -131,7 +143,7 @@ namespace Wjy.Museum
                             !triggerDown && hand.triggerWasDown);
                     }
                 }
-                else if (holdingHand == null && State == RodState.Display && gripDown && !hand.gripWasDown)
+                else if (!menuOpen && holdingHand == null && State == RodState.Display && gripDown && !hand.gripWasDown)
                     TryGrip(hand.ray);
                 hand.gripWasDown = gripDown;
                 hand.triggerWasDown = triggerDown;
@@ -285,6 +297,7 @@ namespace Wjy.Museum
 
         private void FixedUpdate()
         {
+            if (menu && menu.IsOpen) return;
             if (State == RodState.Flying) AdvanceHook(Time.fixedDeltaTime);
             else if (IsInWater) AdvanceFishing(Time.fixedDeltaTime);
             else if (State == RodState.Reeling) AdvanceReel(Time.fixedDeltaTime);
@@ -422,7 +435,8 @@ namespace Wjy.Museum
                 transform.localScale = homeScale;
                 if (t>=1) SetState(RodState.Display,"GRIP: pick up\nTRIGGER: hold, swing, release");
             }
-            visuals?.Pose(Time.time, State == RodState.FishHooked, waterSurface.bounds.center, sharedRig.Camera);
+            visuals?.Pose(Time.time, State == RodState.FishHooked,
+                waterSurface.transform.TransformPoint(waterSurface.center), sharedRig.Camera);
             if (State != RodState.Flying && !IsInWater && State != RodState.Reeling) RestHook();
             if (holdingHand != null)
             {
@@ -437,6 +451,8 @@ namespace Wjy.Museum
             }
             DrawLine();
         }
+
+        internal void DismissBasinMessage() => visuals?.ShowMessage(null);
 
         private void RestHook()
         {
@@ -462,10 +478,44 @@ namespace Wjy.Museum
             if (throughFloat) fishingLine.SetPosition(fishingLine.positionCount-1, hook.position);
         }
 
+        private void CreatePedestalInstructions()
+        {
+            if (!instructions) return;
+            var canvasObject = new GameObject("Fitted Fishing Instructions", typeof(RectTransform), typeof(Canvas));
+            var face = (RectTransform)canvasObject.transform;
+            face.SetParent(instructions.transform.parent, false);
+            face.localPosition = instructions.transform.localPosition;
+            face.localRotation = instructions.transform.localRotation;
+            face.localScale = Vector3.one * .001f;
+            face.sizeDelta = new Vector2(830, 500);
+            var canvas = canvasObject.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+            canvas.worldCamera = sharedRig.Camera;
+
+            pedestalInstructions = new GameObject("Instructions", typeof(RectTransform), typeof(Text)).GetComponent<Text>();
+            var label = pedestalInstructions.rectTransform;
+            label.SetParent(face, false);
+            label.anchorMin = Vector2.zero;
+            label.anchorMax = Vector2.one;
+            label.offsetMin = new Vector2(15, 15);
+            label.offsetMax = new Vector2(-15, -15);
+            pedestalInstructions.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            pedestalInstructions.fontSize = 64;
+            pedestalInstructions.resizeTextForBestFit = true;
+            pedestalInstructions.resizeTextMinSize = 30;
+            pedestalInstructions.resizeTextMaxSize = 64;
+            pedestalInstructions.alignment = TextAnchor.MiddleCenter;
+            pedestalInstructions.color = new Color(.14f, .12f, .08f);
+            pedestalInstructions.raycastTarget = false;
+            instructions.GetComponent<MeshRenderer>().enabled = false;
+        }
+
         private void SetState(RodState state,string message)
         {
             State=state;
-            if(instructions)instructions.text=message;
+            string caption = message + "\n<b>Start the Fishing Experience</b>\n(7 Surprises!)";
+            if (pedestalInstructions) pedestalInstructions.text = caption;
+            else if (instructions) instructions.text = caption;
         }
         private void OnApplicationPause(bool paused) { if(paused)ReleaseGrip(); }
         private void OnApplicationFocus(bool focused) { if(!focused)ReleaseGrip(); }
@@ -491,6 +541,7 @@ namespace Wjy.Museum
         }
         private void OnDestroy()
         {
+            if (pedestalInstructions) Destroy(pedestalInstructions.transform.parent.gameObject);
             visuals?.Dispose();
             if(!grab)return;
             grab.selectEntered.RemoveListener(OnGrabbed);
