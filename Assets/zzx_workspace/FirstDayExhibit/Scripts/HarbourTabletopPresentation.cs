@@ -5,17 +5,17 @@ namespace ZzxWorkspace.FirstDay
 {
     public sealed partial class HarbourTabletopPrototype
     {
-        private GameObject mainAction, skipAction, crateInput, choices, reader, stamp, passengers;
-        private Transform repairTool, workPaperRoot;
+        [SerializeField] private GameObject mainAction, skipAction, crateInput, choices, reader, stamp, passengers;
+        [SerializeField] private Transform repairTool, workPaperRoot;
         private bool passRead, letterRead;
-        private Vector3 passengerHome;
-        private readonly Vector3 hookHome=new Vector3(.17f,1.28f,.20f);
-        private readonly Vector3 cargoLanding=new Vector3(.07f,1.0395f,.015f);
-        private TMP_Text readerBody, readerTitle;
-        private GameObject documentPicture;
-        private Renderer documentPictureFace;
-        private Material passPictureMaterial, letterPictureMaterial;
-        private Material paper, ink, ferryBlue, repairGreen;
+        [SerializeField] private Vector3 passengerHome;
+        private Vector3 hookHome=new Vector3(.17f,1.28f,.20f);
+        private Vector3 cargoLanding=new Vector3(.07f,1.0395f,.015f);
+        [SerializeField] private TMP_Text readerBody, readerTitle;
+        [SerializeField] private GameObject documentPicture;
+        [SerializeField] private Renderer documentPictureFace;
+        [SerializeField] private Material passPictureMaterial, letterPictureMaterial;
+        [SerializeField] private Material paper, ink, ferryBlue, repairGreen;
         private const string LetterText="Dear family,\n\nI arrived here by ferry today. The harbour is much busier than I expected. Tomorrow, I will begin my new job handling cargo.\n\nI hope everything goes well.";
         private const string PassText="Name: Liang\n\nOccupation: Cargo Handler\n\nAssigned Berth: No. 02\n\nStatus: New Worker";
 
@@ -77,7 +77,7 @@ namespace ZzxWorkspace.FirstDay
             readerTitle=Label("Document heading","",new Vector3(0,1.85f,-.455f),new Vector2(1.70f,.10f),.050f);
             readerBody=Label("Document contents","",new Vector3(0,1.43f,-.455f),new Vector2(1.19f,.72f),.034f);
             readerBody.alignment=TextAlignmentOptions.TopLeft;
-            readerTitle.color=readerBody.color=ink.color;
+            readerTitle.color=ink.color; readerBody.color=Color.black;
             readerTitle.transform.SetParent(reader.transform,true); readerBody.transform.SetParent(reader.transform,true);
             var close=Button("Close document","CLOSE",new Vector3(.43f,.985f,-.47f),new Vector3(.40f,.12f,.04f),CloseReader);
             close.transform.SetParent(reader.transform,true);

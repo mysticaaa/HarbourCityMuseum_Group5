@@ -1,3 +1,7 @@
 Builds~/
 Validation/*.log
 Validation/*.log.meta
+
+Validation~/
+
+IntegrationBackup~/

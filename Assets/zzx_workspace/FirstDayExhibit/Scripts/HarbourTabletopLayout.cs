@@ -5,11 +5,11 @@ namespace ZzxWorkspace.FirstDay
 {
     public sealed partial class HarbourTabletopPrototype
     {
-        private GameObject repairWorker;
-        private Transform workerArm, ferryDoor;
-        private readonly Vector3 doorClosedPosition=new Vector3(.068f,.066f,.105f);
-        private Renderer ferryDoorFace, ferryOpeningFace;
-        private Material ferryDoorYellow;
+        [SerializeField] private GameObject repairWorker;
+        [SerializeField] private Transform workerArm, ferryDoor;
+        private Vector3 doorClosedPosition=new Vector3(.068f,.066f,.105f);
+        [SerializeField] private Renderer ferryDoorFace, ferryOpeningFace;
+        [SerializeField] private Material ferryDoorYellow;
         private void BuildLowTable()
         {
             foreach(string name in new[]{"Archive plinth","Brass rim","Interpretation wall"})
@@ -66,7 +66,7 @@ namespace ZzxWorkspace.FirstDay
             ferryHome=new Vector3(-.79f,.965f,.01f); ferry.localPosition=ferryHome;
             passengerHome=new Vector3(-.735f,.986f,.105f); passengers.transform.localPosition=passengerHome;
             var oldPeople=new List<GameObject>(); foreach(Transform child in passengers.transform) oldPeople.Add(child.gameObject);
-            foreach(var person in oldPeople) { person.SetActive(false); Destroy(person); }
+            foreach(var person in oldPeople) { person.SetActive(false); if(Application.isPlaying) Destroy(person); else DestroyImmediate(person); }
             for(int i=0;i<3;i++) Human("Passenger",passengers.transform,new Vector3(0,0,-i*.025f),ferryBlue);
             var worker=Human("Repair worker",model,new Vector3(.495f,.9675f,.12f),repairGreen);
             // Gangway bridges the small gap between the cabin exit and the pier.

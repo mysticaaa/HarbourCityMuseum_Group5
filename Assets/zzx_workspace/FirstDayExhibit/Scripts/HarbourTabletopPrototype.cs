@@ -14,25 +14,42 @@ namespace ZzxWorkspace.FirstDay
         public enum Stage { Idle, Explore, Choosing, Report, Cargo, Selected, Loading, Letter, Complete }
         public Stage CurrentStage { get; private set; }
         [Min(.1f)] public float movementSeconds = .8f;
-        private Transform model, hook, crate, ferry;
-        private GameObject target;
-        private TMP_Text message;
-        private XRInteractionManager manager;
+        [SerializeField] private Transform model, hook, crate, ferry;
+        [SerializeField] private GameObject target;
+        [SerializeField] private TMP_Text message;
+        [SerializeField] private XRInteractionManager manager;
         private readonly List<Material> materials = new List<Material>();
-        private Vector3 crateHome, ferryHome;
-        private LineRenderer cable;
-        private Material wood, sea, white, dark, cyan;
+        [SerializeField] private Vector3 crateHome, ferryHome;
+        [SerializeField] private LineRenderer cable;
+        [SerializeField] private Material wood, sea, white, dark, cyan;
         private int lastClick = -1;
         private Coroutine runningAnimation;
         private int activeArea=-1;
         private bool formalLoading;
         private readonly bool[] visited = new bool[3];
-        private readonly HarbourPrototypeButton[] areaButtons = new HarbourPrototypeButton[3];
-        private Transform repairBoat, cargoBoat, repairMarker;
-        private Vector3 repairHome, cargoHome;
+        [SerializeField] private HarbourPrototypeButton[] areaButtons = new HarbourPrototypeButton[3];
+        [SerializeField] private Transform repairBoat, cargoBoat, repairMarker;
+        [SerializeField] private Vector3 repairHome, cargoHome;
 
+        [SerializeField] private bool savedExhibit;
+        public bool IsSavedExhibit => savedExhibit;
         private void Start()
         {
+            if(savedExhibit)
+            {
+                if(!manager)
+                {
+                    foreach(var candidate in FindObjectsOfType<XRInteractionManager>())
+                        if(candidate.gameObject.scene==gameObject.scene) { manager=candidate; break; }
+                }
+                if(!manager) { Debug.LogError("Saved harbour exhibit needs the scene XRInteractionManager.",this); enabled=false; return; }
+                BindSavedButtons();
+                // Capture editor adjustments as the new reset positions.
+                ferryHome=ferry.localPosition; cargoHome=cargoBoat.localPosition; repairHome=repairBoat.localPosition;
+                crateHome=crate.localPosition; hookHome=hook.localPosition; passengerHome=passengers.transform.localPosition;
+                doorClosedPosition=ferryDoor.localPosition;
+                ResetExperience(); return;
+            }
             var old = GetComponentInChildren<XRBaseInteractable>(true);
             manager = old ? old.interactionManager : null;
             if (!manager)
@@ -348,6 +365,7 @@ namespace ZzxWorkspace.FirstDay
         }
         private void OnDestroy()
         {
+            if(savedExhibit) return;
             foreach(var m in materials) if(m) Destroy(m);
             foreach(var mesh in artMeshes) if(mesh) Destroy(mesh);
             foreach(var texture in artTextures) if(texture) Destroy(texture);
