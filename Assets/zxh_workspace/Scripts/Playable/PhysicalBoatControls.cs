@@ -34,6 +34,24 @@ namespace ZxhMuseum
             var bounds=renderer.localBounds.size;
             go.transform.localScale=Vector3.one*Mathf.Min(1,maxWidth/Mathf.Max(.001f,bounds.x),maxHeight/Mathf.Max(.001f,bounds.y));
         }
+        // Fixed, double-sided signage. Visual only: never intercept the interaction ray or the player.
+        public void InstructionSign(string name, Vector3 position, Quaternion rotation, string title, string instructions, float width=.88f, float height=.46f)
+        {
+            var root=new GameObject(name).transform;root.SetParent(transform,false);
+            root.localPosition=position;root.localRotation=rotation;
+            var board=Part("Instruction backing",PrimitiveType.Cube,Vector3.zero,new Vector3(width,height,.025f),new Color(.035f,.065f,.08f),root);
+            board.GetComponent<Collider>().enabled=false;
+            foreach(float side in new[]{-1f,1f})
+            {
+                var face=new GameObject("Instruction face").transform;face.SetParent(root,false);
+                face.localPosition=new Vector3(0,0,side*.015f);
+                face.localRotation=side<0?Quaternion.identity:Quaternion.Euler(0,180,0);
+                Label(face,title,new Vector3(0,height*.28f,0),.035f,width*.91f,height*.2f);
+                Label(face,instructions,new Vector3(0,-height*.12f,0),.027f,width*.91f,height*.5f);
+                var band=Part("Yellow control marker",PrimitiveType.Cube,new Vector3(0,height*.48f,0),new Vector3(width,.02f,.006f),new Color(1,.75f,.08f),face);
+                band.GetComponent<Collider>().enabled=false;
+            }
+        }
         public PhysicalPushButton Button(string name, Vector3 position, Quaternion rotation, string label, Action action)
         {
             var root = new GameObject(name); root.transform.SetParent(transform, false);

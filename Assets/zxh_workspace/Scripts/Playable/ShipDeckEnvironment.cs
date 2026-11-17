@@ -99,9 +99,13 @@ namespace ZxhMuseum
             maker.Part("Rigging direction nameplate",PrimitiveType.Cube,new Vector3(1.6f,.98f,-11.57f),new Vector3(.5f,.18f,.03f),metal);
             maker.Label(leverRoot,"FORWARD: UP\nCENTRE: STOP\nBACK: DOWN",new Vector3(0,-.02f,-.39f),.018f,.46f,.15f);
             Lever=leverRoot.gameObject.AddComponent<RiggingLever>();Lever.Initialize(this,pivot,handle.transform);
+            maker.InstructionSign("Rigging lever instructions",new Vector3(1.6f,1.85f,-11.0f),Quaternion.identity,
+                "RIGGING LIFT CONTROL","Aim at YELLOW HANDLE below\nHold TRIGGER and move handle\nForward: RAISE / Back: LOWER\nCentre or release: STOP");
             maker.Button("Rigging emergency stop",new Vector3(1.6f,.7f,-11.55f),Quaternion.identity,"STOP",()=>Lever.Stop());
             maker.Part("Hatch operating console",PrimitiveType.Cube,new Vector3(-1.65f,.45f,-5.5f),new Vector3(.5f,.9f,.45f),metal);
             HatchButton=maker.Button("Hatch toggle button",new Vector3(-1.65f,1.0f,-5.76f),Quaternion.identity,"HATCH\nUP / DOWN",ToggleHatch);
+            maker.InstructionSign("Hatch button instructions",new Vector3(-1.65f,1.65f,-5.5f),Quaternion.identity,
+                "DECK HATCH CONTROL","Aim at RED / GREEN BUTTON below\nPress TRIGGER once to OPEN\nPress again to CLOSE");
             maker.Part("Door button mounting block",PrimitiveType.Cube,new Vector3(.4f,3.25f,1.66f),new Vector3(.34f,.36f,.44f),metal);
             OuterDoorButton=maker.Button("Door outside button",new Vector3(.4f,3.25f,1.43f),Quaternion.identity,"DOOR\nOPEN / CLOSE",ToggleDoor);
             InnerDoorButton=maker.Button("Door inside button",new Vector3(.4f,3.25f,1.88f),Quaternion.Euler(0,180,0),"DOOR\nOPEN / CLOSE",ToggleDoor);

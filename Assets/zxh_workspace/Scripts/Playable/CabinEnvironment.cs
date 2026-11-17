@@ -96,15 +96,17 @@ namespace ZxhMuseum
             var windowMaker=gameObject.AddComponent<PhysicalBoatControls>();
             SeaWindow=gameObject.AddComponent<CabinSeaWindow>();SeaWindow.Initialize(windowMaker);
             SideWindow=gameObject.AddComponent<CabinSideWindow>();SideWindow.Initialize(windowMaker);
+            BuildControlHints(windowMaker);
             var engineRoot = new GameObject("ZXH_EngineTeachingDiagram");
             engineRoot.transform.SetParent(transform, false); engineRoot.transform.localPosition = new Vector3(1.4f, 0.8f, -0.65f);
             Engine = engineRoot.AddComponent<EngineCutaway>();
             instruments = Panel("Helm", new Vector3(.9f, 1.6f, -2.2f), 180, 600);
+            instruments.Status.text = "STEERING\nGrip the wheel and turn, or aim at a button and press TRIGGER.";
             instruments.Button("Left", () => Navigation.SetWheel(Navigation.WheelAngle - 10));
             instruments.Button("Centre", () => Navigation.SetWheel(0));
             instruments.Button("Right", () => Navigation.SetWheel(Navigation.WheelAngle + 10));
             var engineControls = Panel("Engine", new Vector3(-.9f, 1.6f, -2.2f), 180, 600);
-            engineControls.Status.text = "Trigger: operate. Stop before changing direction.";
+            engineControls.Status.text = "ENGINE CONTROL\nAim at Ahead / Stop / Astern and press TRIGGER.\nSelect Stop before reversing direction.";
             engineControls.Button("Ahead", () => { if (Navigation.SetGear(1)) Navigation.SetPower(.6f); });
             engineControls.Button("Stop", () => { Navigation.SetPower(0); Navigation.SetGear(0); });
             engineControls.Button("Astern", () => { if (Navigation.SetGear(-1)) Navigation.SetPower(.4f); });
@@ -147,6 +149,21 @@ namespace ZxhMuseum
                     (interactable is WheelRayControl || ExhibitInspectionHint.GetBounds(interactable.transform).size.magnitude < 1))
                     interactable.gameObject.AddComponent<ExhibitHighlight>();
             }
+        }
+        private void BuildControlHints(PhysicalBoatControls maker)
+        {
+            maker.InstructionSign("Wheel operation hint",new Vector3(0,1.82f,-2.75f),Quaternion.identity,
+                "STEERING WHEEL","Aim at wheel rim\nHold GRIP and turn",.56f,.28f);
+            maker.InstructionSign("Compass operation hint",new Vector3(-.6f,1.12f,-2.22f),Quaternion.identity,
+                "COMPASS","Aim at brass dial above\nPress TRIGGER to enlarge",.56f,.26f);
+            maker.InstructionSign("Seat operation hint",new Vector3(1.8f,1.48f,.7f),Quaternion.Euler(0,90,0),
+                "SIT AND REST","Aim at seat + press TRIGGER\nLEAVE SEAT button to stand",.68f,.3f);
+            maker.InstructionSign("Right window operation hint",new Vector3(-1.83f,1.86f,.2f),Quaternion.Euler(0,90,0),
+                "OPENING WINDOW","Aim at glass or WINDOW button\nTRIGGER: open / close",.64f,.25f);
+            maker.InstructionSign("Front window operation hint",new Vector3(-.83f,1.86f,-3.22f),Quaternion.identity,
+                "FRONT WINDOW","Aim at WINDOW button\nTRIGGER: open / close",.52f,.25f);
+            maker.InstructionSign("Radio operation hint",new Vector3(1.8f,1.43f,1.85f),Quaternion.Euler(0,90,0),
+                "RADIO","Aim at radio + TRIGGER\nChoose a sound channel",.48f,.25f);
         }
         private void AddTeleportAnchor(string title, Vector3 position)
         {
@@ -271,7 +288,7 @@ namespace ZxhMuseum
                 tools.Add(toolGrab); InteractableCount++;
             }
             cabinet = Panel("Equipment / sources", new Vector3(-1.1f, 1.45f, 1.7f), 270, 650);
-            cabinet.Status.text = "Schematic equipment.\nA valve regulates flow; a gauge reports a measurement.\nNot a real maintenance procedure.";
+            cabinet.Status.text = "TOOL DRAWER\nAim at brass handle + TRIGGER to open.\nHold GRIP to take a tool; release to return.\nTeaching equipment, not a real maintenance procedure.";
             cabinet.Button("Open / close drawer", ToggleDrawer);
             cabinet.Button("Inspect valve / gauge", () => cabinet.Status.text = "Teaching detail: compare an operating control with a measuring instrument.\nThe placeholder shapes are not a historical reconstruction.");
             cabinet.Button("Reset drawer", () =>

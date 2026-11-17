@@ -26,6 +26,9 @@ public static class PhysicalControlPreview
         try
         {
             Save(camera,target,"Lever",new Vector3(.3f,1.7f,-12.3f),deck.Lever.Handle.position);
+            Save(camera,target,"LeverInstructions",new Vector3(1.6f,1.8f,-13.1f),new Vector3(1.6f,1.6f,-11.1f));
+            Save(camera,target,"HatchInstructions",new Vector3(-1.65f,1.7f,-7.5f),new Vector3(-1.65f,1.4f,-5.55f));
+            Save(camera,target,"CabinInstructions",cabin.transform.TransformPoint(new Vector3(.4f,1.65f,2.4f)),cabin.transform.TransformPoint(new Vector3(0,1.5f,-2.6f)));
             Save(camera,target,"HatchConsole",new Vector3(-.3f,1.7f,-7.2f),deck.HatchButton.transform.position);
             Save(camera,target,"Door",new Vector3(1.2f,3.8f,.1f),deck.OuterDoorButton.transform.position);
             var at=cabin.transform.TransformPoint(new Vector3(0,1.65f,-1.3f));

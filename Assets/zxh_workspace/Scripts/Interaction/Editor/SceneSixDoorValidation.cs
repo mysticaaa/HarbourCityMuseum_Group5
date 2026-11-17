@@ -52,6 +52,7 @@ public static class SceneSixDoorValidation
             {
                 if(session==null || session.Busy || !session.InCabin)return;
                 var cabin=UnityEngine.Object.FindObjectOfType<CabinEnvironment>();
+                if(Array.IndexOf(Environment.GetCommandLineArgs(),"-zxh-render-controls")>=0)PhysicalControlPreview.Capture(cabin,cabin.Deck);
                 var fix=session.Origin.GetComponent<SceneSixDoorClearance>();
                 if(fix==null || fix.CorrectedColliders==0)throw new Exception("Scene 6 correction not applied");
                 cabin.Deck.OuterDoorButton.Actuate();cabin.Deck.AdvanceMotion(3);Physics.SyncTransforms();
