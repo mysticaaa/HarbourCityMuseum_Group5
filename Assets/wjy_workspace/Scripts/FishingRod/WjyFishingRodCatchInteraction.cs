@@ -14,6 +14,13 @@ namespace Wjy.Museum
         private WjyFishingCatchVisuals visuals;
         private Text pedestalInstructions;
         private WjyMuseumPauseMenu menu;
+        private WjyOceanFishingSession oceanSession;
+        private WjyOceanCatchReveal oceanReveal;
+        private bool UsesViewResultPanel => oceanReveal && oceanSession && oceanSession.UseMuseumExhibitLayout;
+        private bool revealPlayed, returningCatch;
+        private Vector3 returnHookStart;
+        internal Text PedestalInstructions => pedestalInstructions;
+        internal Transform DisplayModel => visuals?.RodMotion;
         private float waterElapsed, reelTime, nextHaptic;
         private Vector3 waterLanding, reelStart;
         private Vector3 driftPosition, driftTarget;
@@ -77,6 +84,7 @@ namespace Wjy.Museum
             grab = GetComponent<WjyFishingRodGrab>();
             body = GetComponent<Rigidbody>();
             homeParent = transform.parent;
+            oceanSession = homeParent.GetComponent<WjyOceanFishingSession>();
             homePosition = transform.localPosition;
             homeRotation = transform.localRotation;
             homeScale = transform.localScale;
@@ -87,7 +95,7 @@ namespace Wjy.Museum
 
         private void Start()
         {
-            if (!sharedRig || !rodTip || !hook || !fishingLine || !waterSurface)
+            if (!sharedRig || !rodTip || !hook || !fishingLine || (!waterSurface && !oceanSession))
             {
                 Debug.LogError("[WJY] Fishing rod is missing its rig, hook, line or water reference.", this);
                 enabled = false;
@@ -168,6 +176,7 @@ namespace Wjy.Museum
 
         internal bool BeginGripSelection(XRRayInteractor ray)
         {
+            if (oceanSession && !oceanSession.AtSea) return false;
             var hand = hands.Find(h => h.ray == ray);
             var manager = ray.interactionManager;
             if (hand == null || !manager || !manager.isActiveAndEnabled || ray.hasSelection) return false;
@@ -209,9 +218,12 @@ namespace Wjy.Museum
         private void OnReleased(SelectExitEventArgs args) => BeginReturn();
         private void BeginReturn()
         {
+            returningCatch = oceanReveal && HasFish && !revealPlayed;
+            returnHookStart = hook.position;
             CommitCatch();
             if (visuals != null)
             {
+                if (UsesViewResultPanel) visuals.ShowMessage(null);
                 visuals.Float.gameObject.SetActive(false);
                 visuals.Fish.gameObject.SetActive(HasFish);
             }
@@ -240,6 +252,7 @@ namespace Wjy.Museum
         {
             if (pressed && triggerReady && IsInWater)
             {
+                if (UsesViewResultPanel) visuals.ShowMessage(null);
                 reelStart = hook.position;
                 reelTime = 0;
                 visuals.Float.gameObject.SetActive(false);
@@ -251,6 +264,7 @@ namespace Wjy.Museum
             {
                 HasFish = false;
                 catchCommitted = false;
+                revealPlayed = false;
                 visuals.Float.gameObject.SetActive(false);
                 visuals.Fish.gameObject.SetActive(false);
                 visuals.ShowMessage(null);
@@ -283,6 +297,16 @@ namespace Wjy.Museum
             var bounds = waterSurface.bounds;
             Vector3 direction = Vector3.ProjectOnPlane(swingVelocity,Vector3.up).normalized;
             Vector3 target = bounds.center + direction * Mathf.Clamp(swingVelocity.magnitude*.12f,.1f,.6f);
+            if (oceanReveal)
+            {
+                if (direction.sqrMagnitude < .01f)
+                    direction = Vector3.ProjectOnPlane(sharedRig.Camera.transform.forward, Vector3.up).normalized;
+                if (direction.sqrMagnitude < .01f) direction = Vector3.forward;
+                // Aim from the hand. Even a short cast must clear the raft and its drift margin.
+                target = rodTip.position + direction * Mathf.Clamp(3f + swingVelocity.magnitude * 1.4f, 4f, 12f);
+                var offset = Vector3.ProjectOnPlane(target - bounds.center, Vector3.up);
+                if (offset.sqrMagnitude < 3.6f * 3.6f) target = bounds.center + direction * 3.6f;
+            }
             target.x = Mathf.Clamp(target.x,bounds.min.x+.12f,bounds.max.x-.12f);
             target.z = Mathf.Clamp(target.z,bounds.min.z+.12f,bounds.max.z-.12f);
             target.y = bounds.max.y;
@@ -347,6 +371,7 @@ namespace Wjy.Museum
             Vector3 floatPosition = driftPosition + movement;
             floatPosition.x = Mathf.Clamp(floatPosition.x, bounds.min.x + .04f, bounds.max.x - .04f);
             floatPosition.z = Mathf.Clamp(floatPosition.z, bounds.min.z + .04f, bounds.max.z - .04f);
+            if (oceanReveal) floatPosition.y = SurfaceHeight(floatPosition) + movement.y;
             visuals.Float.position = floatPosition;
             visuals.Float.rotation = Quaternion.identity;
             hook.position = visuals.Float.position + Vector3.down * .22f;
@@ -356,6 +381,11 @@ namespace Wjy.Museum
         private void ChooseDriftTarget()
         {
             var bounds = waterSurface.bounds;
+            if (oceanReveal)
+            {
+                // Each float wanders near its actual splash rather than crossing the raft.
+                bounds = new Bounds(waterLanding - Vector3.up * .05f, new Vector3(1.25f,.1f,1.25f));
+            }
             driftTarget = new Vector3(
                 Mathf.Lerp(bounds.min.x + .09f, bounds.max.x - .09f, (float)driftRandom.NextDouble()),
                 bounds.max.y,
@@ -368,7 +398,7 @@ namespace Wjy.Museum
             reelTime += dt;
             Vector3 target = rodTip.position + Vector3.down * hangingLineLength + transform.right * .12f;
             float t = Mathf.SmoothStep(0, 1, Mathf.Clamp01(reelTime / .8f));
-            hook.position = Vector3.Lerp(reelStart, target, t);
+            MoveRetrievedHook(reelStart, target, t);
             if (t < 1) return;
             RestHook();
             CommitCatch();
@@ -385,6 +415,55 @@ namespace Wjy.Museum
             catchCommitted = true;
         }
 
+        private void MoveRetrievedHook(Vector3 start, Vector3 end, float t)
+        {
+            Vector3 previous = hook.position;
+            hook.position = Vector3.Lerp(start, end, t);
+            if (!oceanReveal || !HasFish) return;
+            hook.position += Vector3.up * (2.4f * t * (1f - t));
+            float aboveWater = hook.position.y - SurfaceHeight(hook.position);
+            if (!revealPlayed && aboveWater >= 0f)
+            {
+                float before = previous.y - SurfaceHeight(previous);
+                var atSurface = Vector3.Lerp(previous, hook.position, Mathf.InverseLerp(before, aboveWater, 0f));
+                atSurface.y = SurfaceHeight(atSurface);
+                revealPlayed = true;
+                oceanReveal.Play((int)visuals.CatchKind, atSurface, sharedRig.Camera.transform);
+            }
+        }
+
+        private float SurfaceHeight(Vector3 point)
+        {
+            if (!oceanReveal) return waterSurface.bounds.max.y;
+            return homeParent.position.y + WjyOceanEnvironment.WaveHeight(homeParent.InverseTransformPoint(point), Time.time);
+        }
+
+        // Move the same rod between its two holders so its collection round survives a visit.
+        internal void PlaceAt(Transform holder, Vector3 position, Quaternion rotation, BoxCollider water, WjyOceanCatchReveal reveal)
+        {
+            HasFish = false;
+            ReleaseGrip();
+            returningCatch = revealPlayed = catchCommitted = false;
+            homeParent = holder;
+            homePosition = position;
+            homeRotation = rotation;
+            transform.SetParent(holder, false);
+            transform.SetLocalPositionAndRotation(position, rotation);
+            transform.localScale = homeScale;
+            body.position = transform.position;
+            body.rotation = transform.rotation;
+            waterSurface = water;
+            oceanReveal = reveal;
+            visuals.Float.SetParent(holder, false);
+            visuals.PlacePanel(holder, UsesViewResultPanel ? sharedRig.Camera : null);
+            visuals.Float.gameObject.SetActive(false);
+            visuals.Fish.gameObject.SetActive(false);
+            visuals.ShowMessage(null);
+            RestHook();
+            DrawLine();
+            SetState(RodState.Display, "GRIP: pick up\nTRIGGER: hold, swing, release");
+        }
+
         internal void AdvanceHook(float dt)
         {
             Vector3 previous = hook.position;
@@ -392,13 +471,14 @@ namespace Wjy.Museum
             hookVelocity += Physics.gravity*dt;
             flightTime += dt;
             var bounds = waterSurface.bounds;
-            float surface = bounds.max.y;
-            if (previous.y>=surface && next.y<=surface)
+            float startHeight = previous.y - SurfaceHeight(previous);
+            float endHeight = next.y - SurfaceHeight(next);
+            if (startHeight >= 0f && endHeight <= 0f)
             {
-                Vector3 crossing = Vector3.Lerp(previous,next,Mathf.InverseLerp(previous.y,next.y,surface));
+                Vector3 crossing = Vector3.Lerp(previous,next,Mathf.InverseLerp(startHeight,endHeight,0f));
                 if (crossing.x>=bounds.min.x && crossing.x<=bounds.max.x && crossing.z>=bounds.min.z && crossing.z<=bounds.max.z)
                 {
-                    waterLanding = new Vector3(crossing.x,surface,crossing.z);
+                    waterLanding = new Vector3(crossing.x,SurfaceHeight(crossing),crossing.z);
                     driftPosition = waterLanding;
                     ChooseDriftTarget();
                     waterElapsed = nextHaptic = 0;
@@ -415,7 +495,7 @@ namespace Wjy.Museum
                 }
             }
             hook.position = next;
-            if (flightTime>4f || next.y<-1f)
+            if (flightTime>4f || next.y < (oceanReveal ? bounds.max.y - 1f : -1f))
             {
                 RestHook();
                 SetState(RodState.Held,"Hold TRIGGER and swing to cast again");
@@ -433,11 +513,18 @@ namespace Wjy.Museum
                 transform.localPosition = Vector3.Lerp(returnPosition,homePosition,t);
                 transform.localRotation = Quaternion.Slerp(returnRotation,homeRotation,t);
                 transform.localScale = homeScale;
+                if (returningCatch)
+                {
+                    MoveRetrievedHook(returnHookStart, rodTip.position + Vector3.down * hangingLineLength + transform.right * .12f, t);
+                    if (t >= 1f && UsesViewResultPanel) visuals.ShowMessage("You caught " + visuals.CatchLabel + "!");
+                }
+                if (t>=1) returningCatch = false;
                 if (t>=1) SetState(RodState.Display,"GRIP: pick up\nTRIGGER: hold, swing, release");
             }
-            visuals?.Pose(Time.time, State == RodState.FishHooked,
-                waterSurface.transform.TransformPoint(waterSurface.center), sharedRig.Camera);
-            if (State != RodState.Flying && !IsInWater && State != RodState.Reeling) RestHook();
+            Vector3 panelOrigin = oceanReveal ? homeParent.position + new Vector3(0,.35f,2.4f)
+                : waterSurface ? waterSurface.transform.TransformPoint(waterSurface.center) : transform.position;
+            visuals?.Pose(Time.time, State == RodState.FishHooked, panelOrigin, sharedRig.Camera);
+            if (State != RodState.Flying && !IsInWater && State != RodState.Reeling && !returningCatch) RestHook();
             if (holdingHand != null)
             {
                 float dt = Time.time-lastSampleTime;

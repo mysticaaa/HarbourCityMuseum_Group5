@@ -84,6 +84,22 @@ namespace Wjy.Museum
             Panel.SetActive(!string.IsNullOrEmpty(value));
         }
 
+        internal void PlacePanel(Transform station, Camera view)
+        {
+            var panel = Panel.transform;
+            panel.SetParent(view ? view.transform : station, false);
+            panel.localScale = Vector3.one * (view ? .00095f : .0012f);
+            if (view)
+            {
+                // Parent to the tracked camera so both eyes see the same panel through late head updates.
+                panel.SetLocalPositionAndRotation(new Vector3(0f, -.36f, 1.5f), Quaternion.identity);
+            }
+            Panel.GetComponent<Canvas>().worldCamera = view;
+            var overlay = view ? Resources.Load<Material>("WjyFishingStatusOverlay") : null;
+            Panel.GetComponent<Image>().material = overlay;
+            message.material = overlay;
+        }
+
         public void Pose(float time, bool biting, Vector3 waterPosition, Camera camera)
         {
             if (RodMotion)
@@ -92,7 +108,7 @@ namespace Wjy.Museum
                 RodMotion.localRotation=rodHomeRotation*(biting?Quaternion.Euler(Mathf.Sin(time*36)*.8f,0,Mathf.Sin(time*43)*.9f):Quaternion.identity);
             }
             if (Fish && Fish.gameObject.activeSelf) Fish.localRotation=Quaternion.Euler(0,0,Mathf.Sin(time*7)*5);
-            if (Panel)
+            if (Panel && Panel.activeSelf && (!camera || Panel.transform.parent != camera.transform))
             {
                 Panel.transform.position=waterPosition+Vector3.up*.65f;
                 if (camera)
@@ -127,6 +143,7 @@ namespace Wjy.Museum
         }
         public void Dispose()
         {
+            if (Panel) { if (Application.isPlaying) Object.Destroy(Panel); else Object.DestroyImmediate(Panel); }
             foreach(var value in owned)if(value){if(Application.isPlaying)Object.Destroy(value);else Object.DestroyImmediate(value);}
             owned.Clear();
         }

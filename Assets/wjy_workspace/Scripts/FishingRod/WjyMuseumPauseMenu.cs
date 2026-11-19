@@ -17,7 +17,8 @@ namespace Wjy.Museum
 
         private void Start()
         {
-            if (gameObject.scene.name != "Museum_261122_1" || !rod || !rod.SharedRig || !rod.SharedRig.Camera)
+            bool museumMenu = gameObject.scene.name == "Museum_261122_1" || GetComponent<WjyOceanFishingSession>();
+            if (!museumMenu || !rod || !rod.SharedRig || !rod.SharedRig.Camera)
             {
                 enabled = false;
                 return;

@@ -22,6 +22,9 @@ namespace Wjy.Museum
         {
             public string name;
             public Vector3 position;
+            public Transform displayAnchor;
+            [Tooltip("Offset from the display centre in metres, along the gallery floor's axes.")]
+            public Vector3 aisleOffset;
         }
 
         private sealed class Destination
@@ -47,8 +50,9 @@ namespace Wjy.Museum
 
             Physics.SyncTransforms();
             mesh = CreateMarkerMesh();
-            AddDestination("Fishing", transform.TransformPoint(localLanding), transform.forward);
-            if (gameObject.scene.name == "Museum_261122_1")
+            var fishingApproach = Vector3.ProjectOnPlane(transform.TransformDirection(localLanding), Vector3.up).normalized;
+            AddDestination("Fishing", transform.TransformPoint(localLanding), fishingApproach);
+            if (gameObject.scene.name == "Museum_261122_1" || GetComponent<WjyOceanFishingSession>())
             {
                 foreach (var root in gameObject.scene.GetRootGameObjects())
                 {
@@ -63,9 +67,9 @@ namespace Wjy.Museum
                     foreach (var player in root.GetComponentsInChildren<VideoPlayer>())
                     {
                         if (!player.targetMaterialRenderer) continue;
-                        var screen = player.targetMaterialRenderer.transform;
-                        var front = Vector3.ProjectOnPlane(-screen.forward, Vector3.up).normalized;
-                        var expected = screen.position + front * 1.55f;
+                        var screen = player.targetMaterialRenderer;
+                        var front = Vector3.ProjectOnPlane(-screen.transform.forward, Vector3.up).normalized;
+                        var expected = screen.bounds.center + front * 1.55f;
                         expected.y = transform.position.y;
                         AddDestination(player.name, expected, front);
                     }
@@ -79,10 +83,20 @@ namespace Wjy.Museum
 
         private void AddExhibitDestination(ExhibitLanding exhibit, Collider floor)
         {
+            var towardAisle = Vector3.forward;
+            var expected = exhibit.position;
+            if (exhibit.displayAnchor)
+            {
+                var offset = Vector3.ProjectOnPlane(floor.transform.TransformDirection(exhibit.aisleOffset), Vector3.up);
+                towardAisle = offset.normalized;
+                var display = exhibit.displayAnchor.GetComponent<Renderer>();
+                expected = (display ? display.bounds.center : exhibit.displayAnchor.position) + offset;
+                expected.y = floor.bounds.max.y;
+            }
             // Keep the ring centered on the exhibit, stepping into the aisle if the display blocks it.
             for (int step = 0; step <= 10; step++)
             {
-                var sample = exhibit.position + Vector3.forward * (.25f * step);
+                var sample = expected + towardAisle * (.25f * step);
                 var down = new Ray(sample + Vector3.up, Vector3.down);
                 if (!floor.Raycast(down, out var hit, 2f)) continue;
 
