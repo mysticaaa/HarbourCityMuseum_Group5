@@ -99,6 +99,14 @@ namespace ZxhMuseum
             maker.Part("Rigging direction nameplate",PrimitiveType.Cube,new Vector3(1.6f,.98f,-11.57f),new Vector3(.5f,.18f,.03f),metal);
             maker.Label(leverRoot,"FORWARD: UP\nCENTRE: STOP\nBACK: DOWN",new Vector3(0,-.02f,-.39f),.018f,.46f,.15f);
             Lever=leverRoot.gameObject.AddComponent<RiggingLever>();Lever.Initialize(this,pivot,handle.transform);
+            var stateRoot=new GameObject("Rigging motion status").transform;stateRoot.SetParent(leverRoot,false);
+            stateRoot.localPosition=new Vector3(0,.4f,-.23f);
+            maker.Label(stateRoot,"STOPPED",Vector3.zero,.025f,.42f,.08f);
+            Lever.AttachStatus(stateRoot.GetComponentInChildren<TextMesh>());
+            var limitRoot=new GameObject("Rigging actual end stop").transform;limitRoot.SetParent(stateRoot,false);
+            limitRoot.localPosition=Vector3.down*.08f;
+            maker.Label(limitRoot,"UPPER LIMIT",Vector3.zero,.025f,.46f,.07f);
+            Lever.AttachLimitStatus(limitRoot.GetComponentInChildren<TextMesh>());
             maker.InstructionSign("Rigging lever instructions",new Vector3(1.6f,1.85f,-11.0f),Quaternion.identity,
                 "RIGGING LIFT CONTROL","Aim at YELLOW HANDLE below\nHold TRIGGER and move handle\nForward: RAISE / Back: LOWER\nCentre or release: STOP");
             maker.Button("Rigging emergency stop",new Vector3(1.6f,.7f,-11.55f),Quaternion.identity,"STOP",()=>Lever.Stop());

@@ -16,6 +16,17 @@ namespace ZxhMuseum
         private Vector3 startPoint;
         private Plane dragPlane;
         private Vector3 dragAxis;
+        private TextMesh status;
+        private TextMesh limitStatus;
+        public string LimitFeedback => deck==null?"":deck.PortBoomAngle>=14.95f && deck.StarboardBoomAngle>=14.95f?"UPPER LIMIT":
+            deck.PortBoomAngle<=-9.95f && deck.StarboardBoomAngle<=-9.95f?"LOWER LIMIT":"";
+        public void AttachStatus(TextMesh label) { status=label;RefreshStatus(); }
+        public void AttachLimitStatus(TextMesh label) { limitStatus=label;RefreshStatus(); }
+        private void RefreshStatus()
+        {
+            if(status!=null)status.text=Direction>0?"RAISING":Direction<0?"LOWERING":"STOPPED";
+            if(limitStatus!=null)limitStatus.text=LimitFeedback;
+        }
         public void Initialize(ShipDeckEnvironment owner, Transform visualPivot, Transform handle)
         {
             deck=owner; pivot=visualPivot; Handle=handle;
@@ -31,6 +42,7 @@ namespace ZxhMuseum
             pivot.localRotation=Quaternion.Euler(value*35,0,0);
             if(direction==Direction)return;
             Direction=direction;
+            RefreshStatus();
             if(direction==0)deck.StopRigging();else deck.MoveRigging(direction>0);
         }
         public void Stop() { holder=null; controller=null; mouseHeld=false; havePoint=false; SetDeflection(0); deck.StopRigging(); }
@@ -68,6 +80,7 @@ namespace ZxhMuseum
             if(Pointer(out var point)){startPoint=point;havePoint=true;}
         }
         private void Update() => ProcessHeldInput();
+        private void LateUpdate() => RefreshStatus();
         public void ProcessHeldInput()
         {
             if(holder==null&&!mouseHeld)return;
@@ -76,6 +89,7 @@ namespace ZxhMuseum
                 (mouseHeld&&(Mouse.current==null||!Mouse.current.leftButton.isPressed))) { Stop();return; }
             if(!havePoint){CapturePoint();return;}
             if(Pointer(out var point))SetDeflection(Vector3.Dot(point-startPoint,dragAxis)/.18f);
+            else Stop(); // Never leave a motion command latched after losing the control ray.
         }
         private void OnDisable() { if(deck!=null)Stop(); }
     }
