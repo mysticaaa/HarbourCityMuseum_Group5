@@ -24,13 +24,26 @@ public class VideoButton : MonoBehaviour
     private void OnEnable()
     {
         interactable.hoverEntered.AddListener(OnHoverEntered);
+        interactable.selectEntered.AddListener(OnDesktopSelected);
         interactable.hoverExited.AddListener(OnHoverExited);
     }
 
     private void OnDisable()
     {
         interactable.hoverEntered.RemoveListener(OnHoverEntered);
+        interactable.selectEntered.RemoveListener(OnDesktopSelected);
         interactable.hoverExited.RemoveListener(OnHoverExited);
+    }
+
+    private void OnDesktopSelected(SelectEnterEventArgs args)
+    {
+        // Desktop rays select with the mouse; XR action-based controllers keep trigger activation.
+        if (args.interactorObject is XRBaseControllerInteractor controllerInteractor &&
+            controllerInteractor.xrController != null &&
+            !(controllerInteractor.xrController is ActionBasedController))
+        {
+            ExecuteAction();
+        }
     }
 
     private void OnHoverEntered(HoverEnterEventArgs args)

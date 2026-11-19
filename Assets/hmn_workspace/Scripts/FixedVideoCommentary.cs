@@ -11,6 +11,11 @@ public sealed class FixedVideoCommentary : MonoBehaviour
     [SerializeField] private TMP_FontAsset font;
     [SerializeField] private Vector3 panelOffset = new Vector3(1.48f, 0f, -0.04f);
 
+    [SerializeField] private Vector2 panelSize = new Vector2(440f, 280f);
+    [SerializeField] private Color backgroundColor = new Color32(36, 70, 90, 255);
+    [SerializeField] private Color textColor = Color.white;
+    [SerializeField] private bool useCaptionTypography;
+
     private VideoPlayer player;
     private GameObject panel;
 
@@ -25,6 +30,7 @@ public sealed class FixedVideoCommentary : MonoBehaviour
 
     private void OnDisable()
     {
+        if (player == null) return;
         player.started -= Show;
         player.loopPointReached -= OnEnded;
         player.errorReceived -= OnError;
@@ -57,10 +63,10 @@ public sealed class FixedVideoCommentary : MonoBehaviour
         rect.SetParent(transform, false);
         rect.localPosition = panelOffset;
         rect.localScale = Vector3.one * 0.0025f;
-        rect.sizeDelta = new Vector2(440f, 280f);
+        rect.sizeDelta = panelSize;
         panel.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
         var background = panel.GetComponent<Image>();
-        background.color = new Color32(36, 70, 90, 255);
+        background.color = backgroundColor;
         background.raycastTarget = false;
 
         var label = new GameObject("Commentary", typeof(RectTransform), typeof(TextMeshProUGUI))
@@ -72,11 +78,22 @@ public sealed class FixedVideoCommentary : MonoBehaviour
         label.rectTransform.offsetMax = new Vector2(-24f, -20f);
         if (font != null) label.font = font;
         label.text = commentary;
-        label.color = Color.white;
+        label.color = textColor;
         label.alignment = TextAlignmentOptions.MidlineLeft;
         label.enableAutoSizing = true;
         label.fontSizeMin = 20;
         label.fontSizeMax = 34;
+        if (useCaptionTypography)
+        {
+            label.fontStyle = FontStyles.Normal;
+            label.fontWeight = FontWeight.Regular;
+            label.enableAutoSizing = false;
+            label.fontSize = 36f;
+            label.lineSpacing = 8f;
+            label.enableWordWrapping = true;
+            // Use a private material so the caption does not change other TMP labels.
+            label.outlineWidth = 0f;
+        }
         label.overflowMode = TextOverflowModes.Ellipsis;
         label.raycastTarget = false;
         label.richText = false;
