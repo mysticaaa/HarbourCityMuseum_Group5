@@ -70,6 +70,12 @@ namespace Wjy.Museum
             raft.SetActive(false);
             raft.transform.position = new Vector3(0f, 0f, 2048f);
             raft.AddComponent<WjyOceanEnvironment>();
+            if (useMuseumExhibitLayout)
+            {
+                raft.AddComponent<WjyOceanLiner>();
+                raft.AddComponent<WjyOceanGulls>();
+                raft.AddComponent<WjyOceanMeteors>();
+            }
             reveal = raft.AddComponent<WjyOceanCatchReveal>();
             var water = new GameObject("Open sea casting surface");
             water.layer = Physics.IgnoreRaycastLayer;
