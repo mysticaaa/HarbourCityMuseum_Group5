@@ -16,7 +16,10 @@ namespace Wjy.Museum
         private WjyFishingRodCatchInteraction rod;
         private XROrigin rig;
         private WjyOceanFishingUI ui;
+        private WjyFishingTutorial tutorial;
         private WjyOceanCatchReveal reveal;
+        private WjyFishingCollectionBoard collectionBoard;
+        private readonly HashSet<WjyCatchKind> discoveredCatches = new HashSet<WjyCatchKind>();
         private GameObject raft;
         private BoxCollider sea;
         private Scene museum, ocean;
@@ -42,6 +45,12 @@ namespace Wjy.Museum
             displayRotation = rod.transform.localRotation;
             ui = gameObject.AddComponent<WjyOceanFishingUI>();
             ui.BuildMuseum(transform, rod.PedestalInstructions, rig.Camera, EnterOcean);
+            if (useMuseumExhibitLayout)
+            {
+                rod.CatchLanded += RecordDiscovery;
+                tutorial = gameObject.AddComponent<WjyFishingTutorial>();
+                tutorial.Initialize(this, rod);
+            }
         }
 
         public void EnterOcean()
@@ -51,6 +60,7 @@ namespace Wjy.Museum
             museumFeet = new Vector3(view.position.x, rig.transform.position.y, view.position.z);
             museumFacing = Vector3.ProjectOnPlane(view.forward, Vector3.up);
             if (museumFacing.sqrMagnitude < .001f) museumFacing = rig.transform.forward;
+            if (tutorial) tutorial.LeaveGallery();
             SuspendMuseum();
             AtSea = true;
             if (!raft) CreateOcean();
@@ -75,6 +85,7 @@ namespace Wjy.Museum
                 raft.AddComponent<WjyOceanLiner>();
                 raft.AddComponent<WjyOceanGulls>();
                 raft.AddComponent<WjyOceanMeteors>();
+                collectionBoard = WjyFishingCollectionBoard.Build(raft.transform, rig.Camera, discoveredCatches);
             }
             reveal = raft.AddComponent<WjyOceanCatchReveal>();
             var water = new GameObject("Open sea casting surface");
@@ -85,6 +96,13 @@ namespace Wjy.Museum
             sea.center = new Vector3(0f, WjyOceanEnvironment.SeaLevel - .05f, 0f);
             sea.size = new Vector3(100f,.1f,100f);
             ui.BuildRaft(raft.transform, rig.Camera, ReturnToMuseum);
+        }
+
+        private void RecordDiscovery(WjyCatchKind kind)
+        {
+            if (!AtSea || !discoveredCatches.Add(kind)) return;
+            collectionBoard.SetDiscovered(discoveredCatches);
+            rod.QueueCollectionMilestone(discoveredCatches.Count);
         }
 
         private void MoveTo(Vector3 floorPosition, Vector3 facing)
@@ -151,6 +169,7 @@ namespace Wjy.Museum
 
         private void OnDestroy()
         {
+            if (rod) rod.CatchLanded -= RecordDiscovery;
             if (Application.isPlaying && ocean.IsValid() && ocean.isLoaded && SceneManager.sceneCount > 1)
                 SceneManager.UnloadSceneAsync(ocean);
         }

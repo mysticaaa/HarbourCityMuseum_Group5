@@ -25,6 +25,7 @@ namespace Wjy.Museum
         private Vector3 stage;
         private float elapsed, duration;
         private WjyCatchKind kind;
+        internal bool IsPlaying => burst != null;
 
         public void Play(int kind, Vector3 surfacePoint, Transform viewer)
         {

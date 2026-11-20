@@ -34,6 +34,46 @@ namespace Wjy.Museum
             public GameObject marker;
         }
 
+        // Only a visible distant ring gets a longer beam. The XRI ray keeps its
+        // normal range for exhibit grabs, buttons and other controller interactions.
+        private sealed class DistantBeam
+        {
+            private LineRenderer beam;
+            private LineRenderer controllerLine;
+
+            public void Show(XRRayInteractor ray, Transform owner, Material material, Vector3 origin, Vector3 end)
+            {
+                if (!beam)
+                {
+                    beam = new GameObject("Distant teleport ray").AddComponent<LineRenderer>();
+                    beam.transform.SetParent(owner, false);
+                    beam.useWorldSpace = true;
+                    beam.positionCount = 2;
+                    beam.widthMultiplier = .005f;
+                    beam.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    beam.receiveShadows = false;
+                }
+                if (!controllerLine && ray.TryGetComponent<LineRenderer>(out var line) && !line.forceRenderingOff)
+                {
+                    controllerLine = line;
+                    controllerLine.forceRenderingOff = true;
+                }
+                if (ray.TryGetComponent<XRInteractorLineVisual>(out var visual) && visual.overrideInteractorLineOrigin && visual.lineOriginTransform)
+                    origin = visual.lineOriginTransform.position;
+                beam.sharedMaterial = material;
+                beam.SetPosition(0, origin);
+                beam.SetPosition(1, end);
+                beam.enabled = true;
+            }
+
+            public void Hide()
+            {
+                if (beam) beam.enabled = false;
+                if (controllerLine) controllerLine.forceRenderingOff = false;
+                controllerLine = null;
+            }
+        }
+
         private XROrigin rig;
         private XRRayInteractor[] rays;
         private readonly List<XRInteractorLineVisual> adjustedLines = new List<XRInteractorLineVisual>();
@@ -41,6 +81,8 @@ namespace Wjy.Museum
         private TeleportationProvider provider;
         private Mesh mesh;
         private WjyMuseumPauseMenu menu;
+        private bool useDistantRings;
+        private readonly DistantBeam leftBeam = new DistantBeam(), rightBeam = new DistantBeam();
         private bool leftTriggerWasDown = true, rightTriggerWasDown = true;
 
         private void Start()
@@ -50,6 +92,7 @@ namespace Wjy.Museum
 
             Physics.SyncTransforms();
             mesh = CreateMarkerMesh();
+            useDistantRings = gameObject.scene.name == "Museum_261122_1";
             var fishingApproach = Vector3.ProjectOnPlane(transform.TransformDirection(localLanding), Vector3.up).normalized;
             AddDestination("Fishing", transform.TransformPoint(localLanding), fishingApproach);
             if (gameObject.scene.name == "Museum_261122_1" || GetComponent<WjyOceanFishingSession>())
@@ -161,8 +204,8 @@ namespace Wjy.Museum
             rightTriggerWasDown = !rightConnected || rightPressed;
 
             bool canAim = rod && !rod.HoldingRay && (!menu || !menu.IsOpen);
-            var left = canAim && leftConnected ? FindAimedDestination("Left Controller") : null;
-            var right = canAim && rightConnected ? FindAimedDestination("Right Controller") : null;
+            var left = FindAimedDestination("Left Controller", canAim && leftConnected, leftBeam);
+            var right = FindAimedDestination("Right Controller", canAim && rightConnected, rightBeam);
             var selected = (leftJustPressed ? left : null) ?? (rightJustPressed ? right : null);
             if (selected != null) TryTeleport(selected.position);
             foreach (var destination in destinations)
@@ -170,21 +213,67 @@ namespace Wjy.Museum
                     ? new Color(.55f, 1f, .75f) : new Color(.07f, .8f, 1f));
         }
 
-        private Destination FindAimedDestination(string controller)
+        private Destination FindAimedDestination(string controller, bool canAim, DistantBeam beam)
         {
+            if (!canAim)
+            {
+                beam.Hide();
+                return null;
+            }
             foreach (var ray in rays)
             {
                 if (!ray || !ray.isActiveAndEnabled || ray.hasSelection || !IsControllerRay(ray, controller)) continue;
-                if (!ray.TryGetCurrentRaycast(out var hit, out _, out _, out _, out bool uiClosest)
-                    || uiClosest || !hit.HasValue || hit.Value.normal.y < .85f) continue;
-                foreach (var destination in destinations)
+                if (ray.TryGetCurrentRaycast(out var hit, out _, out _, out _, out bool uiClosest))
                 {
-                    var offset = hit.Value.point - destination.position;
-                    if (Mathf.Abs(offset.y) <= .05f && offset.x * offset.x + offset.z * offset.z <= radius * radius)
-                        return destination;
+                    if (uiClosest || !hit.HasValue || hit.Value.normal.y < .85f) continue;
+                    foreach (var destination in destinations)
+                    {
+                        var offset = hit.Value.point - destination.position;
+                        if (Mathf.Abs(offset.y) <= .05f && offset.x * offset.x + offset.z * offset.z <= radius * radius)
+                        {
+                            beam.Hide();
+                            return destination;
+                        }
+                    }
+                    continue;
+                }
+                if (useDistantRings && ray.lineType == XRRayInteractor.LineType.StraightLine &&
+                    !ray.IsBlockedByInteractionWithinGroup())
+                {
+                    ray.GetLineOriginAndDirection(out var origin, out var direction);
+                    var distant = FindVisibleDistantRing(ray, origin, direction, out var end);
+                    if (distant != null)
+                    {
+                        beam.Show(ray, transform, distant.material, origin, end);
+                        return distant;
+                    }
                 }
             }
+            beam.Hide();
             return null;
+        }
+
+        private Destination FindVisibleDistantRing(XRRayInteractor ray, Vector3 origin, Vector3 direction, out Vector3 end)
+        {
+            end = default;
+            if (direction.y >= 0f) return null;
+            Destination nearest = null;
+            float nearestDistance = float.PositiveInfinity;
+            foreach (var destination in destinations)
+            {
+                // Intersect the visible disc, which sits just above the floor.
+                var center = destination.marker.transform.position;
+                float distance = (center.y - origin.y) / direction.y;
+                if (distance <= 0f || distance >= nearestDistance) continue;
+                var point = origin + direction * distance;
+                if ((point - center).sqrMagnitude > radius * radius) continue;
+                nearest = destination;
+                nearestDistance = distance;
+                end = point;
+            }
+            if (nearest == null || Physics.Linecast(origin, end, ray.raycastMask, QueryTriggerInteraction.Ignore))
+                return null;
+            return nearest;
         }
 
         private bool IsControllerRay(XRRayInteractor ray, string controller)
@@ -292,6 +381,8 @@ namespace Wjy.Museum
 
         private void OnDisable()
         {
+            leftBeam.Hide();
+            rightBeam.Hide();
             foreach (var destination in destinations)
                 if (destination.marker) destination.marker.SetActive(false);
             foreach (var line in adjustedLines)

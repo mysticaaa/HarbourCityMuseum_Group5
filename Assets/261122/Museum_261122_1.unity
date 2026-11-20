@@ -9123,7 +9123,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1734615750531165472, guid: a61c032ce9154d0fa74f470c4d0cc53a, type: 3}
       propertyPath: m_Text
-      value: Go Fishing(7 Surprises!)
+      value: ''
       objectReference: {fileID: 0}
     - target: {fileID: 7231517614401119197, guid: a61c032ce9154d0fa74f470c4d0cc53a, type: 3}
       propertyPath: m_Name

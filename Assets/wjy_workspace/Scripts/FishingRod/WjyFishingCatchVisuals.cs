@@ -13,6 +13,10 @@ namespace Wjy.Museum
         public GameObject Panel { get; private set; }
         public string Message => message ? message.text : "";
         private Text message;
+        private WjyOceanCatchReveal milestoneReveal;
+        private string collectionMilestone;
+        private float milestoneSecondsLeft;
+        private bool showingMilestone;
         private readonly List<Object> owned = new List<Object>();
         private Vector3 rodHomePosition;
         private Quaternion rodHomeRotation;
@@ -77,6 +81,7 @@ namespace Wjy.Museum
         public void ShowMessage(string value, bool urgent = false)
         {
             if (!Panel) return;
+            showingMilestone = false;
             message.text=value;
             message.color = urgent ? new Color(1f,.12f,.12f) : Color.white;
             message.fontStyle = urgent ? FontStyle.Bold : FontStyle.Normal;
@@ -84,8 +89,43 @@ namespace Wjy.Museum
             Panel.SetActive(!string.IsNullOrEmpty(value));
         }
 
+        internal void QueueCollectionMilestone(int count, int total, WjyOceanCatchReveal reveal)
+        {
+            if (showingMilestone) ShowMessage(null);
+            // A new discovery supersedes the first-catch hint if it was still waiting.
+            collectionMilestone = null;
+            if (count == total)
+                collectionMilestone = $"All {total} discovered! Keep fishing or return to the museum.";
+            else if (count == 1)
+                collectionMilestone = $"1/{total} discovered. Cast again to find the other {total - 1}!";
+            milestoneReveal = reveal;
+            milestoneSecondsLeft = 5f;
+        }
+
+        private void UpdateCollectionMilestone(bool canShow)
+        {
+            if (collectionMilestone == null) return;
+            if (!canShow || (milestoneReveal && milestoneReveal.IsPlaying))
+            {
+                if (showingMilestone) ShowMessage(null);
+                return;
+            }
+            if (!showingMilestone)
+            {
+                ShowMessage(collectionMilestone);
+                showingMilestone = true;
+            }
+            milestoneSecondsLeft -= Time.deltaTime;
+            if (milestoneSecondsLeft > 0f) return;
+            collectionMilestone = null;
+            ShowMessage(null);
+        }
+
         internal void PlacePanel(Transform station, Camera view)
         {
+            if (showingMilestone) ShowMessage(null);
+            collectionMilestone = null;
+            milestoneReveal = null;
             var panel = Panel.transform;
             panel.SetParent(view ? view.transform : station, false);
             panel.localScale = Vector3.one * (view ? .00095f : .0012f);
@@ -100,8 +140,9 @@ namespace Wjy.Museum
             message.material = overlay;
         }
 
-        public void Pose(float time, bool biting, Vector3 waterPosition, Camera camera)
+        public void Pose(float time, bool biting, Vector3 waterPosition, Camera camera, bool canShowCollection = false)
         {
+            UpdateCollectionMilestone(canShowCollection);
             if (RodMotion)
             {
                 RodMotion.localPosition=rodHomePosition+(biting?new Vector3(Mathf.Sin(time*39)*.003f,Mathf.Sin(time*47)*.004f,0):Vector3.zero);

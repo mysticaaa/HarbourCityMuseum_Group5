@@ -10,9 +10,10 @@ namespace Wjy.Museum
     public sealed class WjyOceanFishingUI : MonoBehaviour
     {
         private const int RainbowFrames = 48;
+        private const string RodControls = "Hold the <b>Grip</b> button the entire time\nyou’re using the fishing rod.\nUse the <b>Trigger</b> to cast and reel in";
         private static readonly string[] Captions = MakeCaptions("Start the Fishing Experience",
             "On the raft: GRIP to hold\nTRIGGER: hold, swing, release\n<b>", "</b>\n(7 Surprises!)");
-        private static readonly string[] GalleryCaptions = MakeCaptions("Go Fishing(7 Surprises!)", "<b>", "</b>");
+        private static readonly string[] GalleryCaptions = MakeCaptions("Discover 7 different catches!", "<b>", "</b>");
         private string[] activeCaptions;
         private Text pedestalLabel;
         private string originalText;
@@ -68,17 +69,20 @@ namespace Wjy.Museum
             pedestalLabel.color = Color.white;
             pedestalLabel.horizontalOverflow = HorizontalWrapMode.Overflow;
             pedestalLabel.resizeTextMinSize = 22;
-            pedestalLabel.resizeTextMaxSize = 54;
+            pedestalLabel.resizeTextMaxSize = 35;
             var outline = pedestalLabel.gameObject.AddComponent<Outline>();
             outline.effectColor = new Color(1f, 1f, .96f, .9f);
             outline.effectDistance = new Vector2(1f, -1f);
 
             var button = MakeCanvas("Go Fishing", exhibit, view, new Vector2(240, 96));
             button.localScale = title.localScale;
-            button.SetPositionAndRotation(title.position - exhibit.up * .107f, title.rotation);
+            button.rotation = title.rotation;
+            button.position = GalleryButtonPosition(title, button, onRight: false);
             startPanel = button.gameObject;
             AddButton(button, enter, new Color(.02f, .40f, .15f), new Color(.02f, .57f, .22f),
                 new Color(.01f, .29f, .10f));
+            var label = AddText(button, "Label", "Start fishing", new Vector2(17, 0), new Vector2(172, 42), 29);
+            label.fontStyle = FontStyle.Bold;
             // Two strokes form a play chevron without depending on a font's symbol glyphs.
             for (int side = -1; side <= 1; side += 2)
             {
@@ -86,18 +90,28 @@ namespace Wjy.Museum
                 stroke.gameObject.layer = button.gameObject.layer;
                 stroke.raycastTarget = false;
                 stroke.rectTransform.SetParent(button, false);
-                stroke.rectTransform.sizeDelta = new Vector2(32, 8);
-                stroke.rectTransform.anchoredPosition = new Vector2(0, side * 9);
+                stroke.rectTransform.sizeDelta = new Vector2(22, 5);
+                stroke.rectTransform.anchoredPosition = new Vector2(-82, side * 6);
                 stroke.rectTransform.localRotation = Quaternion.Euler(0, 0, -side * 35f);
             }
 
             // The motion transform contains the shaft and guides. Its grandparent is the
             // stationary exhibit, where the same factory used by the helmet attaches its hint.
             var rod = exhibit.GetComponentInChildren<WjyFishingRodCatchInteraction>();
-            ExhibitInspectionHint.Create(rod.DisplayModel,
-                "Grip: hold the rod\nTrigger: hold, swing and release to cast\nTrigger: press to reel in");
+            ExhibitInspectionHint.Create(rod.DisplayModel, RodControls);
             rodHint = exhibit.GetComponentInChildren<ExhibitInspectionHint>().transform;
+            rodHint.GetComponent<TextMesh>().richText = true;
             rodHint.position -= exhibit.up * .055f;
+        }
+
+        internal static Vector3 GalleryButtonPosition(Transform title, RectTransform button, bool onRight)
+        {
+            // Align the two outer button edges to a 462-unit row centred on the title.
+            const float rowHalfWidth = 231f;
+            float halfRow = title.TransformVector(Vector3.right * rowHalfWidth).magnitude;
+            float halfButton = button.TransformVector(Vector3.right * (button.rect.width * .5f)).magnitude;
+            float offset = halfRow - halfButton;
+            return title.position - title.up * .107f + title.right * (onRight ? offset : -offset);
         }
 
         public void BuildRaft(Transform raftOrigin, Camera view, UnityAction leave)
@@ -115,8 +129,7 @@ namespace Wjy.Museum
             var backing = guide.GetComponent<Image>();
             backing.color = new Color(.02f, .09f, .13f, .94f);
             backing.raycastTarget = false;
-            AddText(guide, "Fishing controls", "Grip: hold the rod\nHold Trigger, swing and release to cast\nPress Trigger to reel in",
-                Vector2.zero, new Vector2(462, 145), 30);
+            AddText(guide, "Fishing controls", RodControls, Vector2.zero, new Vector2(462, 145), 28);
             ShowOcean(atSea);
         }
 
@@ -180,7 +193,7 @@ namespace Wjy.Museum
             return rect.gameObject;
         }
 
-        private static void AddButton(RectTransform rect, UnityAction action, Color normal, Color hover, Color pressed)
+        internal static void AddButton(RectTransform rect, UnityAction action, Color normal, Color hover, Color pressed)
         {
             var image = rect.gameObject.AddComponent<Image>();
             var button = rect.gameObject.AddComponent<Button>();
@@ -194,7 +207,7 @@ namespace Wjy.Museum
             button.onClick.AddListener(action);
         }
 
-        private static RectTransform MakeCanvas(string name, Transform parent, Camera view, Vector2 size)
+        internal static RectTransform MakeCanvas(string name, Transform parent, Camera view, Vector2 size)
         {
             var go = new GameObject(name, typeof(RectTransform), typeof(Canvas), typeof(TrackedDeviceGraphicRaycaster));
             go.layer = LayerMask.NameToLayer("UI");
@@ -207,7 +220,7 @@ namespace Wjy.Museum
             return rect;
         }
 
-        private static Text AddText(RectTransform parent, string name, string value, Vector2 position, Vector2 size, int fontSize)
+        internal static Text AddText(RectTransform parent, string name, string value, Vector2 position, Vector2 size, int fontSize)
         {
             var text = new GameObject(name, typeof(RectTransform), typeof(Text)).GetComponent<Text>();
             text.gameObject.layer = parent.gameObject.layer;
