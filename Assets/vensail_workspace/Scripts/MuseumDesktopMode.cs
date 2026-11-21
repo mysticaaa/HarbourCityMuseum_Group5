@@ -23,6 +23,7 @@ public sealed class MuseumDesktopMode : MonoBehaviour
     private XRRayInteractor pointer;
     private LineRenderer beam;
     private Material beamMaterial;
+    private bool isQuitting;
 
     private void OnEnable()
     {
@@ -160,23 +161,31 @@ public sealed class MuseumDesktopMode : MonoBehaviour
         beam.SetPosition(1, end);
     }
 
+    private void OnApplicationQuit() => isQuitting = true;
+
     private void OnDisable()
     {
         if (pointer != null)
             pointer.gameObject.SetActive(false);
 
-        if (view != null)
+        bool sceneIsRunning = !isQuitting && gameObject.scene.isLoaded;
+        if (sceneIsRunning && view != null)
         {
             view.transform.localPosition = trackedPosition;
             view.transform.localRotation = trackedRotation;
             view.stereoTargetEye = trackedEye;
         }
 
-        foreach (var component in paused)
+        // Re-enabling an XR interactor during teardown can make XRI create a new manager.
+        if (sceneIsRunning && interactionManager != null)
         {
-            if (component != null)
-                component.enabled = true;
+            foreach (var component in paused)
+            {
+                if (component != null)
+                    component.enabled = true;
+            }
         }
+
         paused.Clear();
         view = null;
         rig = null;

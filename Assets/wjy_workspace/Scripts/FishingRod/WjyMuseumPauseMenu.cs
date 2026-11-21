@@ -12,6 +12,7 @@ namespace Wjy.Museum
         [SerializeField] private WjyFishingRodCatchInteraction rod;
         private GameObject panel;
         private Camera view;
+        private MuseumQuickMenu quickMenu;
         private bool leftWasDown = true, rightWasDown = true;
         public bool IsOpen => panel && panel.activeInHierarchy;
 
@@ -26,15 +27,25 @@ namespace Wjy.Museum
             view = rod.SharedRig.Camera;
             BuildMenu();
             foreach (var root in gameObject.scene.GetRootGameObjects())
-                if (root.name == "UIFollowCamera" && root.transform.Find("Canvas/Quit"))
-                    root.SetActive(false);
+            {
+                if (root.name != "UIFollowCamera")
+                    continue;
+
+                var legacyQuit = root.transform.Find("Canvas/Quit");
+                if (legacyQuit)
+                    legacyQuit.gameObject.SetActive(false);
+
+                quickMenu = root.GetComponentInChildren<MuseumQuickMenu>(true);
+            }
         }
 
         private void Update()
         {
             bool left = ReadMenuButton(XRNode.LeftHand, ref leftWasDown);
             bool right = ReadMenuButton(XRNode.RightHand, ref rightWasDown);
-            if (panel && (left || right || (Keyboard.current?.mKey.wasPressedThisFrame ?? false)))
+            bool quickMenuHandlesToggle = quickMenu && quickMenu.isActiveAndEnabled;
+            bool desktopToggle = Keyboard.current?.mKey.wasPressedThisFrame ?? false;
+            if (panel && (left || (!quickMenuHandlesToggle && (right || desktopToggle))))
                 SetOpen(!IsOpen);
         }
 
