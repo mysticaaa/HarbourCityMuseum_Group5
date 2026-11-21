@@ -76,6 +76,11 @@ namespace ZzxWorkspace.FirstDay
             ferryOpeningFace=Box("Cabin doorway",new Vector3(.064f,.066f,.081f),new Vector3(.004f,.065f,.048f),white,ferry).GetComponent<Renderer>();
             ferryDoorFace=Box("Cabin door",new Vector3(0,0,-.024f),new Vector3(.006f,.064f,.048f),white,ferryDoor).GetComponent<Renderer>();
             repairWorker=worker.gameObject; workerArm=worker.Find("Working arm"); repairWorker.SetActive(false);
+            // Raise the entire table and its display together by 10 cm.
+            foreach(Transform part in transform)
+                if(part.name=="Harbour tabletop prototype" || part.name=="Wood tabletop" ||
+                   part.name=="Table apron" || part.name=="Wood table leg")
+                    part.localPosition+=Vector3.up*.10f;
         }
         private Transform Human(string name,Transform parent,Vector3 p,Material clothes)
         {
