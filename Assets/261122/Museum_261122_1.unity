@@ -17021,3 +17021,51 @@ SceneRoots:
   - {fileID: 209592756}
   - {fileID: 710100000002}
   - {fileID: 710100000012}
+  - {fileID: 790210000002}
+--- !u!1 &790210000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 790210000002}
+  - component: {fileID: 790210000003}
+  m_Layer: 0
+  m_Name: CSY Phase 3 Exhibit Guidance
+  m_TagString: Untagged
+  m_IsActive: 1
+--- !u!4 &790210000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 790210000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &790210000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 790210000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d1d20396be265f5a9fe11a0e9066bc06, type: 3}
+  m_Name:
+  m_EditorClassIdentifier:
+  helmetAudio: {fileID: 8300000, guid: 91c4c34d7915460881aeaf6cd9b91e5a, type: 3}
+  boatAudio: {fileID: 8300000, guid: 8a5b886d7e4754fc8cfbb3486ceea980, type: 3}
+  storyAudio: {fileID: 8300000, guid: 5db1038dcfbe5f44a47e9735eb224321, type: 3}
+  helmetCard: {x: -4.65, y: 1.75, z: -0.08}
+  boatCard: {x: 3.5, y: 1.75, z: -0.6}
+  storyCard: {x: -8.5, y: 1.75, z: -0.25}

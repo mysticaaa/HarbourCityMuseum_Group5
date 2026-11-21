@@ -1,0 +1,8 @@
+{
+  "provenance": "Prototype synthetic speech rendered with Windows System.Speech.Synthesis; not archival audio.",
+  "scripts": {
+    "Phase3Helmet": "Look for the viewing window on the diving helmet. The window lets a diver see while keeping water out. This model is an observation aid; its exact historical provenance is not established. You can read the card and answer without holding the helmet.",
+    "Phase3Boat": "Compare the fishing boat display with its explorable deck and cabin. Point at the boat and use the trigger to request boarding. Choose Enter ship or Cancel. The interior is a teaching reconstruction, not a certified vessel simulation.",
+    "Phase3FirstDay": "First Day in the Harbour is a fictional port story. Select START. Read the work pass and letter, explore the harbour areas, then follow the board to find the workplace and complete a small loading task. You can retry or restart. The people and documents are interpretive reconstructions."
+  }
+}

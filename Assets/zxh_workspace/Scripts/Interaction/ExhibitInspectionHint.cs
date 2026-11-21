@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class ExhibitInspectionHint : MonoBehaviour
 {
+    // Lets an optional exhibit adapter replace only its own legacy label, reversibly.
+    public Transform Source { get; private set; }
     public static Bounds GetBounds(Transform model)
     {
         Renderer[] renderers = model.GetComponentsInChildren<Renderer>();
@@ -31,7 +33,7 @@ public class ExhibitInspectionHint : MonoBehaviour
         text.characterSize = 0.008f;
         text.anchor = TextAnchor.MiddleCenter;
         text.color = Color.black;
-        label.AddComponent<ExhibitInspectionHint>();
+        label.AddComponent<ExhibitInspectionHint>().Source = model;
     }
 
     private void LateUpdate()

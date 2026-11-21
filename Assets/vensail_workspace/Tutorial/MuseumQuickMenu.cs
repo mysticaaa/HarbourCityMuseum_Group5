@@ -5,6 +5,7 @@ using UnityEngine.UI;
 [DisallowMultipleComponent]
 public sealed class MuseumQuickMenu : MonoBehaviour
 {
+    public bool IsOpen => expandedList && expandedList.activeInHierarchy;
     [SerializeField] private GameObject menuButton;
     [SerializeField] private GameObject expandedList;
     [SerializeField] private GameObject volumeControls;
