@@ -85,3 +85,18 @@
 - 保留既有前推/后拉、扳机操作、按钮和移动绑定，不改公共脚本或场景。
 - VensailCabinValidation 新增未到限位不提示、实际上下限位识别、射线失效后停止及 STOPPED 反馈断言；Unity 2022.3.62f3 运行通过，实体交互、座位及三次登船返回回归通过。
 - 日志仅在本机 Logs/ZXH-P1-Refinement-Validation.log。未在头显中验证新限位文字，不宣称用户测试改善指标。
+
+## 2026-11-21 驾驶室通行与驾驶反馈（本地验证版）
+- 将完整工具柜、抽屉、工具及其操作面板移离门内直行通道，并避开指南针放大面板。
+- 场景6专用碰撞净空覆盖入口、转身及船舵接近路线，保留地板、门板和身体高度的侧墙碰撞；原模型外观与 XR 身高不改。
+- 新增 BoatDrivingFeedback，复用 VoyageState 的速度、航向及动力，在稳定的甲板外显示相对移动的海面参照和导航浮标，支持前进、倒车和转向。
+- 增加随动力/速度变化的合成引擎循环音；发动机面板提供 Sea motion on/off 与 Engine sound on/off。
+- 船内和玩家 XR Rig 保持静止，不强制摇晃、俯仰或移动头显。动态海景是相对运动模拟，不是物理船体航行。
+- 远处视觉参照在隐藏距离外循环，避免近处突然重置；Reset cabin 同步复位航行反馈。
+- 回归入口 SceneSixDoorValidation.Run 覆盖不同站立高度的双向进出、转身、船舵接近、门/地板、驾驶状态和舒适模式，以及三次上船返回。最终结果以本机 Logs/ZXH-CabinDriving-Final.log 为准。头显舒适度和声音感受仍需设备验收。
+- 另修复地面传送圆标的隐形凸起：将扁平圆柱默认 CapsuleCollider 换为薄 BoxCollider，保留射线传送目标。
+
+合并验证：已基于队友 main bf48999，在 Assets/261122/Museum_261122_1.unity 运行 SceneSixDoorValidation.RunLatest。Logs/ZXH-LatestMain-Driving-Validation.log 包含 DRIVING PASS、DOOR PASS 和三次往返 RELEASE PASS。保持队友场景与公共脚本不变，本地驾驶室改动保留，尚未提交推送。
+
+
+本次提交包含上述 2026-11-21 驾驶室通行与驾驶反馈改动，已基于 main bf48999 完成最新整合场景回归；此前“本地验证版”“尚未提交推送”为开发阶段记录。此次不包含本机 ProjectSettings 修改、匿名评估记录、旧打包脚本或 Builds；未重新生成 exe。头显中的舒适度、音效和实际行走体验仍需设备验收。

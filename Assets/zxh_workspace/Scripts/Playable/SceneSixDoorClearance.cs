@@ -9,7 +9,9 @@ namespace ZxhMuseum
         private CabinEnvironment applied;
         private readonly List<Mesh> copies=new List<Mesh>();
         public int CorrectedColliders { get; private set; }
-        public static readonly Bounds Headroom=new Bounds(new Vector3(1.2f,4.75f,1.6f),new Vector3(1.5f,1.5f,2.8f));
+        // Retain walls below shoulder height and their outer sides, while clearing the
+        // standing head envelope through the entry, turn and helm approach.
+        public static readonly Bounds Headroom=new Bounds(new Vector3(0,4.75f,4.4f),new Vector3(3.8f,1.5f,8.4f));
         private void Update()
         {
             var session=MuseumSession.Instance;

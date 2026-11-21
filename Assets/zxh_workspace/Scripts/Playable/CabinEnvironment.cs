@@ -8,6 +8,7 @@ namespace ZxhMuseum
     public sealed class CabinEnvironment : MonoBehaviour
     {
         public VoyageState Navigation { get; private set; }
+        public BoatDrivingFeedback Driving { get; private set; }
         public Transform Needle { get; private set; }
         public WheelRayControl Wheel { get; private set; }
         public int InteractableCount { get; private set; }
@@ -127,6 +128,9 @@ namespace ZxhMuseum
             deckRoot.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
             Deck = deckRoot.AddComponent<ShipDeckEnvironment>();
             Deck.Initialize(this);
+            Driving=deckRoot.AddComponent<BoatDrivingFeedback>();Driving.Initialize(Navigation);
+            engineControls.Button("Sea motion on / off",()=>Driving.MotionEnabled=!Driving.MotionEnabled);
+            engineControls.Button("Engine sound on / off",()=>Driving.SoundEnabled=!Driving.SoundEnabled);
             exit.Button("Go outside to deck", () => Deck.Travel(true));
             exit.Button("Reset cabin", ResetCabin);
             exit.Button("Audio on / off", () => AudioListener.volume = AudioListener.volume > 0 ? 0 : 1);
@@ -168,6 +172,10 @@ namespace ZxhMuseum
         private void AddTeleportAnchor(string title, Vector3 position)
         {
             var marker = Shape(title, PrimitiveType.Cylinder, position, new Vector3(0.38f, 0.005f, 0.38f), new Color(0.1f, 0.45f, 0.45f));
+            // A flattened cylinder's CapsuleCollider retains its horizontal radius as
+            // minimum height, making an invisible bump. Keep a genuinely thin ray target.
+            Destroy(marker.GetComponent<Collider>());
+            marker.AddComponent<BoxCollider>().size=new Vector3(1,2,1);
             var anchor = marker.AddComponent<TeleportationAnchor>(); anchor.teleportAnchorTransform = marker.transform;
         }
         private void BuildWheel()
@@ -224,7 +232,7 @@ namespace ZxhMuseum
             var compass = Shape("Compass - select to enlarge", PrimitiveType.Cylinder, new Vector3(-0.55f, 1.34f, -2.5f),
                 new Vector3(0.35f, 0.04f, 0.35f), brass);
             Needle = CompassNeedle(transform, new Vector3(-0.55f, 1.4f, -2.5f), 1);
-            compassView = Panel("Compass inspection", new Vector3(-1.45f, 1.6f, -0.4f), 270);
+            compassView = Panel("Compass inspection", new Vector3(-1.45f, 1.6f, -1.5f), 270);
             compassView.Status.text = "Red N marks north relative to simulated ship heading.\nThe dial turns with heading; the cabin stays still.";
             compassView.Button("Close magnified compass", () => compassView.gameObject.SetActive(false));
             compassView.Button("Show North / 000", () => Navigation.SetHeadingForDemonstration(0));
@@ -252,6 +260,7 @@ namespace ZxhMuseum
         }
         private void BuildCabinet()
         {
+            int firstChild=transform.childCount;
             Box("Cabinet back", new Vector3(-1.82f, 0.55f, 1.7f), new Vector3(0.07f, 1.1f, 0.7f), wood);
             Box("Cabinet top", new Vector3(-1.45f, 1.08f, 1.7f), new Vector3(0.75f, 0.06f, 0.7f), wood);
             Box("Cabinet base", new Vector3(-1.45f, 0.1f, 1.7f), new Vector3(0.75f, 0.1f, 0.7f), wood);
@@ -300,6 +309,13 @@ namespace ZxhMuseum
             cabinet.Button("Reset tools", () => { MuseumSession.Instance?.CancelCurrentInteraction(); foreach (var item in tools) item.ResetPose(); });
             var tool = Shape("Valve teaching model", PrimitiveType.Cylinder, new Vector3(-1.45f, 1.15f, 1.7f), new Vector3(0.2f, 0.06f, 0.2f), brass);
             Click(tool, () => cabinet.Status.text = "Valve: a control for opening, closing or regulating a flow.\nTeaching model, not a documented ship component.");
+            // Keep the complete cabinet assembly and its controls away from the entrance approach.
+            var assembly=new GameObject("Equipment cabinet away from doorway").transform;
+            assembly.SetParent(transform,false);
+            var parts=new List<Transform>();
+            for(int i=firstChild;i<transform.childCount;i++)if(transform.GetChild(i)!=assembly)parts.Add(transform.GetChild(i));
+            foreach(var part in parts)part.SetParent(assembly,true);
+            assembly.localPosition=new Vector3(0,0,-2.2f);
         }
         private void ToggleDrawer()
         {
@@ -363,6 +379,7 @@ namespace ZxhMuseum
             MuseumSession.Instance?.Narrator.Stop();
             foreach (var item in tools) item.ResetPose();
             Navigation.ResetState(); MuseumSession.Instance?.LeaveSeat();
+            Driving?.ResetFeedback();
             drawerOpen = false; drawer.localPosition = new Vector3(-1, 0.8f, 1.7f);
             compassView.gameObject.SetActive(false); SeaWindow.Close(); SideWindow.Close(); logPage = 0;
             logPanel.Status.text = "1 / 3 - Arrival\nA teaching crew prepares for a harbour journey. This is fictional demonstration content.";

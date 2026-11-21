@@ -30,6 +30,11 @@ public static class SceneSixDoorValidation
         else EditorSceneManager.OpenScene(Target);
         SessionState.SetBool(Key,true);EditorApplication.isPlaying=true;
     }
+    public static void RunLatest()
+    {
+        EditorSceneManager.OpenScene("Assets/261122/Museum_261122_1.unity");
+        SessionState.SetBool(Key,true);EditorApplication.isPlaying=true;
+    }
     [InitializeOnLoadMethod]
     private static void Resume()
     {
@@ -55,19 +60,38 @@ public static class SceneSixDoorValidation
                 if(Array.IndexOf(Environment.GetCommandLineArgs(),"-zxh-render-controls")>=0)PhysicalControlPreview.Capture(cabin,cabin.Deck);
                 var fix=session.Origin.GetComponent<SceneSixDoorClearance>();
                 if(fix==null || fix.CorrectedColliders==0)throw new Exception("Scene 6 correction not applied");
+                var nav=cabin.Navigation;var driving=cabin.Driving;
+                var rigPosition=session.Origin.transform.position;var rigRotation=session.Origin.transform.rotation;
+                nav.ResetState();driving.ResetFeedback();nav.SetGear(1);nav.SetPower(.6f);
+                for(int i=0;i<4;i++){nav.Step(1);driving.Advance(1);}
+                if(nav.Speed<=0 || driving.VirtualPosition.z<=0)throw new Exception("Ahead driving feedback failed");
+                nav.SetWheel(90);nav.Step(1);driving.Advance(1);
+                if(nav.Heading<=0)throw new Exception("Wheel did not affect driving heading");
+                if(session.Origin.transform.position!=rigPosition || Quaternion.Angle(session.Origin.transform.rotation,rigRotation)>.01f)
+                    throw new Exception("Driving moved the tracked rig");
+                driving.MotionEnabled=false;var sceneryPose=driving.Reference.position;nav.Step(1);driving.Advance(1);
+                if(Vector3.Distance(sceneryPose,driving.Reference.position)>.001f)throw new Exception("Comfort motion switch failed");
+                driving.MotionEnabled=true;nav.SetGear(0);for(int i=0;i<6;i++)nav.Step(1);
+                if(Mathf.Abs(nav.Speed)>.01f)throw new Exception("Neutral did not decelerate");
+                nav.SetGear(-1);nav.SetPower(.5f);nav.Step(1);driving.Advance(1);
+                if(nav.Speed>=0)throw new Exception("Astern failed");
+                nav.ResetState();driving.ResetFeedback();
+                Debug.Log("ZXH DRIVING PASS: ahead, turning, neutral, astern, comfort switch; XR rig unchanged.");
                 cabin.Deck.OuterDoorButton.Actuate();cabin.Deck.AdvanceMotion(3);Physics.SyncTransforms();
                 foreach(float height in new[]{1.8f,2.1f,2.4f})
                 {
                     var foot=new Vector3(1.2f,2.14f,.3f);const float radius=.22f;
                     var hits=Physics.CapsuleCastAll(foot+Vector3.up*radius,foot+Vector3.up*(height-radius),radius,
-                        Vector3.forward,2.3f,~0,QueryTriggerInteraction.Ignore)
+                        Vector3.forward,3.3f,~0,QueryTriggerInteraction.Ignore)
                         .Where(h=>h.collider.gameObject.scene==cabin.gameObject.scene).ToArray();
                     if(hits.Length>0)throw new Exception("Standing height "+height+" blocked: "+string.Join(", ",hits.Select(h=>h.collider.name+" at "+h.point+" bounds="+h.collider.bounds)));
-                    var inside=foot+Vector3.forward*2.3f;
+                    var inside=foot+Vector3.forward*3.3f;
                     var reverse=Physics.CapsuleCastAll(inside+Vector3.up*radius,inside+Vector3.up*(height-radius),radius,
-                        Vector3.back,2.3f,~0,QueryTriggerInteraction.Ignore)
+                        Vector3.back,3.3f,~0,QueryTriggerInteraction.Ignore)
                         .Where(h=>h.collider.gameObject.scene==cabin.gameObject.scene).ToArray();
                     if(reverse.Length>0)throw new Exception("Standing exit blocked: "+string.Join(", ",reverse.Select(h=>h.collider.name)));
+                    CheckWalkSegment(cabin,inside,inside+Vector3.left*1.2f,height,radius);
+                    CheckWalkSegment(cabin,inside+Vector3.left*1.2f,new Vector3(0,2.14f,5.8f),height,radius);
                 }
                 // Floor and working closed door must continue to stop the player.
                 if(!Physics.Raycast(new Vector3(1.2f,2.7f,2.5f),Vector3.down,1))throw new Exception("Cabin floor collision lost");
@@ -89,5 +113,13 @@ public static class SceneSixDoorValidation
     private static void Finish(int result)
     {
         SessionState.SetBool(Key,false);EditorApplication.update-=Tick;EditorApplication.Exit(result);
+    }
+    private static void CheckWalkSegment(CabinEnvironment cabin,Vector3 start,Vector3 end,float height,float radius)
+    {
+        var delta=end-start;
+        var hits=Physics.CapsuleCastAll(start+Vector3.up*radius,start+Vector3.up*(height-radius),radius,
+            delta.normalized,delta.magnitude,~0,QueryTriggerInteraction.Ignore)
+            .Where(hit=>hit.collider.gameObject.scene==cabin.gameObject.scene).ToArray();
+        if(hits.Length>0)throw new Exception("Cabin turn/helm approach blocked: "+string.Join(", ",hits.Select(hit=>hit.collider.name)));
     }
 }
