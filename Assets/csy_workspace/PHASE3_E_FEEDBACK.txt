@@ -1,0 +1,45 @@
+Phase 3 E feedback-to-change register
+Recorded: 21 November 2026 (Asia/Shanghai)
+Source: feedback relayed by CHEN Siyu in the project conversation.
+No participant ID, original observation sheet, device, sample size or task timing was supplied.
+These are relayed findings, not independently observed research results.
+
+E-F01
+Relayed wording: 小字看不清
+Theme: legibility of exhibit instructions.
+Requirement: useful prompts at the normal visitor approach position.
+Priority: high impact, moderate effort; blocks independent use.
+Change: common opaque, high-contrast fixed cards; readable fixed type scale;
+separate action, interpretation and status; suppress only the replaced legacy hints.
+Repeat task: approach, read the first instruction and explain the next action without help.
+Evidence to collect: actual standing/seated distance, device, reading errors/help and participant explanation.
+Remaining limit: rendered fit, occlusion and headset legibility not yet verified.
+
+E-F02
+Relayed wording: 不知道如何操作头盔
+Theme: action discoverability and purpose.
+Requirement: explain inspection, release-to-return and an understandable observation goal.
+Priority: high impact, moderate effort; uses the existing exhibit rather than adding a prop.
+Change: instructions respond to held/released state; a window-function self-check gives
+explanatory retry, completion and reset. A non-holding path remains available.
+Repeat task: inspect or read the helmet, explain the window's role, answer, release and reset.
+Evidence to collect: first attempted action, assistance, mistakes and explanation of the feedback.
+Remaining limit: self-check completion is not proof of learning or physical window detection.
+
+E-F03
+Relayed wording: 自动讲解容易误触发
+Theme: intent, interruption and control over audio.
+Requirement: start when the visitor intends to attend, avoid overlap and allow skipping.
+Priority: high impact, higher implementation effort; affects multiple stations and transitions.
+Change: fixed visit regions, entry/exit hysteresis, 1.2-second dwell and forward sightline,
+nearest eligible station, once-per-visit state, Replay/Stop and automatic-audio preference.
+Video/other speech defer E narration; menus, boarding, cabin and inactive gallery suppress it.
+Repeat task: pass a station, pause facing it, stop, replay, open/close menu and leave/return.
+Evidence to collect: unintended starts, interrupted speech, repeated triggers and user expectations.
+Remaining limit: thresholds and real exhibit distances need headset and novice-user tuning.
+
+Verification linkage
+Software checks are in CSYGuideValidation and VisitPolicyTests (Editor folder).
+The three changes share the E integration commit; use git log on the E branch to cite its identifier.
+Add actual anonymous post-change observations before claiming the findings are resolved.
+No test results or participant quotations have been fabricated.

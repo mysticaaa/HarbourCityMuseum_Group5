@@ -1,21 +1,49 @@
-# Phase 3 exhibit guidance
+# Phase 3 E delivery
 
-This first implementation is scoped to the helmet. It uses the existing XR grab and return behaviour. Visitors can use the fixed card without grabbing; grabbing changes its instruction to inspect the viewing window and release to return. Finding the window is an observation task, not an automatically scored event.
+Base: `main` at `a53edad` (20 November 2026). E work is on `csy-phase3-e`. The original dirty working directory was preserved; development uses a separate Git worktree. No fishing gameplay, existing exhibit placement, input bindings, video commentary or entrance animation was edited.
 
-## Integration
+## Open and review
 
-- Use the agreed Phase 3 scene in a separate scene copy for the first review. In its Hierarchy select the helmet with `HelmetHandInspection`, then choose **CSY Tools > Phase 3 > Add guide to selected helmet**. The command binds the clip and grab object and selects the new guide. It does not save the scene. For an older local baseline, `CSYExhibitGuideSetup.BuildDemo` is the batch entry point that can save a separate demo scene.
-- Position the card at the agreed visitor standing point, without obstructing scenery or the route. Use the scene's active XR camera as `Visitor` if the tagged `MainCamera` is ambiguous. Move the card as needed, then put its child `Fixed helmet range` back at the exhibit centre so the trigger area does not follow the held model.
-- Defaults: enter within 1.6 m horizontally, dwell 0.6 s, exit beyond 1.85 m. Leaving stops playback and resets the visit, so re-entry can replay. The guide plays once per visit. Guide-managed clips do not overlap; existing cabin audio, video and background music are independent. Coordinate their volume with the layout/audio owner before release.
-- The new card does not remove the legacy `ExhibitInspectionHint`. Check whether that text is duplicated in the release scene and coordinate a scoped suppression before replacing the old display. No shared scripts, existing scene files or Build Settings are changed by this implementation.
-- For another exhibit, configure a new guide with its own clip, name, instruction and interpretation. Leave `Inspection Object` empty for exhibits without XR grabbing. Do not use the helmet recording for the ship. Check neighbouring guide radii against the walking route. No additional prop is required to test the helmet task.
+- `Assets/csy_workspace/Scenes/Phase3E_XR/Museum_261122_1.unity` is the XR review copy of the latest `Assets/261122/Museum_261122_1.unity`.
+- `Assets/csy_workspace/Scenes/Phase3E_Desktop/Museum_261122_1.unity` is the same copy with the existing **Keyboard and Mouse Interaction** root enabled. Use the existing W/S movement, A/D turning and mouse click. It is a testing mode, not a replacement for headset testing.
+- Menu: **CSY Tools > Phase 3 > Open integrated E scene**. To integrate into a later layout, open a safe scene copy and choose **Install E guides in current scene**. The menu is idempotent and refuses Play mode. Installation marks the scene dirty but does not save it. Inspect the three card positions before saving.
+- Build Settings in upstream still points to the Phase 2 scene. The review copies do not change it. The release owner must explicitly choose the agreed release scene and document build/source correspondence.
 
-## Narration
+## Implemented E scope
 
-`Phase3Helmet.wav` is synthetic speech rendered using Windows speech synthesis for the prototype. Script: “Look for the viewing window on the diving helmet. The window lets a diver see while keeping water out of the helmet. If you prefer, read the exhibit card without picking up the model.” This explains a general function without assigning a historical provenance to the model. The card repeats the core interpretation in text.
+Three configurable stations cover the active helmet, active boarding boat and First Day display. Video screens retain HMN's existing playback and commentary. The rod retains its owner's tutorial and controls. All new guide content is an introduction; the First Day audio does not disclose the map answer.
 
-## Phase 3 checks
+The coordinator binds the active Hands Rig camera, not the inactive legacy rig. It chooses the nearest eligible station in the visitor's forward 60-degree cone with an unobstructed sightline, requires a 1.2-second dwell, uses separate entry/exit thresholds, and plays once per visit. Leaving the region resets the visit. A fixed region stays at the display when the helmet is held.
 
-Record the source commit, launch scene and test mode. In desktop or XR, check a quick pass, a sustained approach, standing in place after playback, leaving during playback, re-entry and a second nearby guide. On the headset, check card legibility at the approach point, whether the user can locate the window, and grab/release/return. Also verify that the guide is silent while away in the cabin and that existing controls still work. Desktop motion and headset input are separate checks.
+Cards expose **Replay**, **Stop**, and **Auto audio on / off** with the existing physical XRI ray/Activate and direct mouse-ray fallback. Automatic speech waits during video playback or other non-looping audio. While E speaks, looping sources are temporarily reduced to one quarter and then restored. E stops when the gallery is inactive, during boat entry/cabin sessions, loss of application focus, or disable. The active-scene gate handles transitions without changing teammates' transition code. Text remains an alternative when audio is off or occupied.
 
-For the report, link observed difficulty or interview evidence to the change and repeat the same task after integration. The scenarios above are a verification plan, not participant findings or results.
+Cards share a fixed high-contrast style, 28-40 point UI fonts at a fixed world scale and top height of 1.75 m. Their positions are configurable on the adapter. They do not follow or cover the held helmet. The card does not use shrinking auto-size to fit long text; runtime checks flag content overflow. The tiny legacy hints are suppressed only for E's bound models, using a small `ExhibitInspectionHint.Source` association; disabling E restores their prior activation state.
+
+The helmet retains the existing grab, rotation and return behaviour. Visitors observe the window and choose its function on the card. An incorrect choice explains what to observe and permits retry; a correct choice produces completion feedback; reset clears only this local observation task. The task can be completed without sustained Grip. It is a self-check, not geometric window detection or a validated learning measure. No new prop is added.
+
+## Audio provenance
+
+The three `Audio/Phase3*.wav` clips are prototype synthetic speech rendered with the local Windows speech synthesizer. They are not historical recordings or quotations. Scripts are in `Audio/Phase3Narration.json`. Cards provide written summaries, not synchronized captions. The helmet and boat are illustrative models; no specific historical provenance is asserted.
+
+## Checks and limits
+
+See `PHASE3_E_VALIDATION.txt` for the dated software-check record and the remaining walkthroughs. Unity runtime import, rendered layout, mouse button operation, executable and physical-headset checks are still pending because the local Editor could not obtain a valid license. Do not report static compilation as a successful Play session.
+
+Menus **Check guide policies** and **Check running guide references and text** provide repeatable checks once Unity runs. The latter needs Play mode and the integrated scene. These are technical checks, not participant observations.
+
+## Phase 3 evidence and evaluation
+
+The group leader requested proximity introductions, more legible hints and a richer helmet interaction. This is a requirements source, not participant evaluation evidence. The user subsequently relayed three findings: small hints are hard to read, helmet operation is unclear, and automatic speech can misfire. See PHASE3_E_FEEDBACK.txt for their scope, changes and repeat tasks. No original participant identifiers, raw observation sheets or timings were supplied; no post-change results have been invented.
+
+Suggested tasks for a consenting novice participant:
+
+1. Enter, approach the helmet and explain what its controls allow, without a moderator demonstrating them.
+2. Listen, stop and replay the introduction; also find the equivalent information without audio.
+3. Inspect the window, answer the observation question, try a different answer and reset.
+4. Walk to the boat, cancel boarding, enter and return; check whether gallery narration intrudes.
+
+Record anonymous participant IDs, device/mode, source commit, prompts/help given, actions and short interview notes. Ask about visibility, discoverability, control over audio and physical effort. Obtain consent, allow withdrawal or stopping for discomfort, and collect only necessary data. Never ask a participant to move a physical chair based on a virtual seat. Actual safe reach and readability must be checked on hardware before participant use.
+
+Use a finding register: `finding ID -> anonymous evidence -> code/theme -> requirement -> severity/benefit/effort -> change commit -> repeated task -> remaining limitation`. Keep contradictory observations. Individual attribution is provided by the E branch's commits and named instruments/analysis, not by commit counts. The final individual reflection is at most 750 words and must accurately separate implementation, evaluation contribution and limitations.
+
+The review copies deliberately retain the upstream scene name in separate directories because existing teammate scripts use that name. Open and build only the chosen copy; do not put all same-named review scenes in the release scene list.

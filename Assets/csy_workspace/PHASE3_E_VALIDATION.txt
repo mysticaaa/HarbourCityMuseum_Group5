@@ -1,0 +1,59 @@
+Phase 3 E validation record
+Date: 21 November 2026 (Asia/Shanghai)
+Base: origin/main a53edad
+Review scenes: Scenes/Phase3E_XR/Museum_261122_1.unity
+               Scenes/Phase3E_Desktop/Museum_261122_1.unity
+
+PASSED - static compilation
+113 default runtime sources and 33 default Editor sources compiled using the
+Unity 2022.3.62f3 compiler. Runtime sources came from the new worktree; the Editor
+compile referenced that newly compiled runtime, not the old Assembly-CSharp DLL.
+Package/asmdef dependencies used the installed project's cached references.
+The unchanged package manifest was compared. Existing warnings remain (95 runtime,
+18 Editor in this check); compilation is not a claim that the whole project is warning-free.
+
+PASSED - pure software checks
+67 assertions exercise the visit state actually used by the guide coordinator:
+quick passage, dwell, once per visit, radius hysteresis, leave/re-enter, availability,
+vertical range, invalid numerical inputs and clock rollback.
+5 additional assertions exercise the actual helmet task state: initial, retry,
+completion, ignored duplicate answer, and reset. Total: 72 software assertions.
+Unity menu 'CSY Tools > Phase 3 > Check guide policies' repeats these policies.
+
+PASSED - serialized scene checks
+The review XR scene preserves all 412 non-root-list serialized documents from the
+latest source scene and appends one E adapter root (GameObject, Transform and script).
+The desktop copy additionally activates the existing Keyboard and Mouse Interaction
+root, with one activation change. Source scene SHA256:
+3c85186dddc18137701d2f598c3108167b836a1ac25c764ab8f96e8cfa7d71d0
+Same scene filenames preserve existing teammate scene-name checks. No fishing code
+or layout edits are included. First Day binds HarbourTabletopPrototype, which replaced
+the removed legacy FirstDayJourney component in the latest prefab.
+
+NOT PASSED OR CLAIMED - Unity runtime and hardware
+The Editor batch run terminated before import with 'No valid Unity Editor license
+found. Please activate your license.' There is no successful Play session, rendered
+preview, executable, target-PC, participant, or physical-headset result in this record.
+
+REQUIRED WALKTHROUGHS after opening in a licensed Editor
+1. Open the desktop copy. Confirm active camera and exactly three E guide cards.
+2. Run 'Check running guide references and text' in Play. Inspect card clipping,
+   button alignment, model and route occlusion; automated fit alone is insufficient.
+3. W/S move, A/D turn; mouse-click Replay, Stop and audio preference; inspect both
+   sides of cards. Repeat with each XR controller's existing ray + Activate binding.
+4. Pass a station without attending; pause facing it; leave mid-speech and re-enter.
+   Open/cancel a menu: do not click through it or restart the same visit's narration.
+5. Play an existing video. Verify E defers, subtitles remain intact, and looping
+   background-source volumes return to their previous values after E speech ends.
+6. Grab/release helmet; try wrong/correct answer, reset and the non-holding path.
+   Ensure only the replaced legacy hints disappear; disabling E restores them.
+7. Board/cancel/return three times. Ensure no gallery speech in the cabin and
+   no regression of the existing input, model return or pause/quit controls.
+8. The teammate's separate-scene return is a compatibility check only, not new
+   gameplay. Ensure the gallery is silent when its scene is inactive.
+9. Verify stationary/seated/standing reach and readability on the target headset.
+10. Repeat relevant tasks with consented novice participants. Link anonymous notes
+    to E-F01/E-F02/E-F03; report contrary evidence and limitations as well.
+
+The test build and teaching-lab environment still require release-owner validation.
+This record does not certify all Phase 3 criteria or replace evaluation evidence.
