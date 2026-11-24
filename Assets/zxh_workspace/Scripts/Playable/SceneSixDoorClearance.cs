@@ -32,7 +32,8 @@ namespace ZxhMuseum
             {
                 if(!collider.enabled || collider.isTrigger || !collider.bounds.Intersects(Headroom))continue;
                 // Keep the working door and all interactable fittings intact.
-                if(collider.name=="Sliding wheelhouse door" || collider.GetComponentInParent<UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable>()!=null)continue;
+                var target=collider.GetComponentInParent<UnityEngine.XR.Interaction.Toolkit.XRBaseInteractable>();
+                if(collider.name=="Sliding wheelhouse door" || (target!=null && !(target is UnityEngine.XR.Interaction.Toolkit.BaseTeleportationInteractable)))continue;
                 var cut=LocalBounds(collider.transform,Headroom);
                 if(collider is MeshCollider mesh && mesh.sharedMesh!=null && !mesh.convex)
                 {

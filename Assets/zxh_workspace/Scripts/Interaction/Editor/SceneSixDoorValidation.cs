@@ -13,6 +13,8 @@ public static class SceneSixDoorValidation
     private const string Key="ZXH.SceneSixDoorValidation";
     private static int phase, trips;
     private static double deadline;
+    private static bool teleportVerified;
+    private static readonly Vector3 TeleportDestination=new Vector3(0,.04f,-9);
     [MenuItem("ZXH/Create scene 6 doorway fix")]
     public static void Create()
     {
@@ -51,12 +53,53 @@ public static class SceneSixDoorValidation
             if(phase==0)
             {
                 if(session==null)return;
+                teleportVerified=false;
                 session.RequestEnter();phase=1;return;
+            }
+            if(phase==10)
+            {
+                var head=session.Origin.Camera.transform.position;
+                if(Vector2.Distance(new Vector2(head.x,head.z),new Vector2(TeleportDestination.x,TeleportDestination.z))>.05f)return;
+                session.MoveTo(UnityEngine.Object.FindObjectOfType<CabinEnvironment>().Deck.SpawnPoint,0);
+                teleportVerified=true;phase=1;
+                Debug.Log("ZXH TELEPORT EXECUTION PASS: original museum provider moved the rig to a cabin-scene destination.");
+                return;
             }
             if(phase==1)
             {
                 if(session==null || session.Busy || !session.InCabin)return;
                 var cabin=UnityEngine.Object.FindObjectOfType<CabinEnvironment>();
+                var teleportTemplate=CabinTeleportSetup.MuseumTemplate(session);
+                if(teleportTemplate==null)throw new Exception("Museum teleport template missing");
+                var teleportSurfaces=cabin.GetComponentsInChildren<UnityEngine.XR.Interaction.Toolkit.BaseTeleportationInteractable>();
+                foreach(var surface in teleportSurfaces)
+                    if(surface.interactionLayers.value!=teleportTemplate.interactionLayers.value ||
+                       surface.teleportTrigger!=teleportTemplate.teleportTrigger ||
+                       surface.teleportationProvider==null || surface.interactionManager!=teleportTemplate.interactionManager)
+                        throw new Exception("Cabin teleport differs from museum: "+surface.name);
+                if(teleportSurfaces.Length<16)throw new Exception("Deck, cabin, anchors or stairs missing teleport targets");
+                Physics.SyncTransforms();
+                foreach(var above in new[]{new Vector3(1.25f,1.5f,-10),new Vector3(0,3.5f,4.8f)})
+                {
+                    var floorHits=Physics.RaycastAll(above,Vector3.down,2,~0,QueryTriggerInteraction.Ignore)
+                        .Where(hit=>hit.collider.gameObject.scene==cabin.gameObject.scene).OrderBy(hit=>hit.distance).ToArray();
+                    var floorHit=floorHits.Length>0?floorHits[0]:default;
+                    if(floorHits.Length==0 ||
+                        floorHit.collider.GetComponent<UnityEngine.XR.Interaction.Toolkit.BaseTeleportationInteractable>()==null)
+                        throw new Exception("Teleport floor is occluded at "+above+": "+(floorHit.collider!=null?floorHit.collider.name:"no hit"));
+                    if(floorHit.collider.GetComponent<DeckMeshTeleportArea>()!=null && !DeckMeshTeleportArea.IsSafeDestination(floorHit))
+                        throw new Exception("Visible deck target rejected at "+floorHit.point);
+                }
+                Debug.Log("ZXH TELEPORT CONFIG PASS: "+teleportSurfaces.Length+" targets inherit museum interaction layer and teleport gesture.");
+                if(!teleportVerified)
+                {
+                    var provider=teleportSurfaces[0].teleportationProvider;
+                    if(provider.system.xrOrigin!=session.Origin)throw new Exception("Teleport targets wrong XR rig");
+                    if(!provider.QueueTeleportRequest(new UnityEngine.XR.Interaction.Toolkit.TeleportRequest
+                    {destinationPosition=TeleportDestination,destinationRotation=Quaternion.identity,
+                    matchOrientation=UnityEngine.XR.Interaction.Toolkit.MatchOrientation.WorldSpaceUp}))throw new Exception("Museum provider rejected cabin teleport");
+                    phase=10;return;
+                }
                 if(Array.IndexOf(Environment.GetCommandLineArgs(),"-zxh-render-controls")>=0)PhysicalControlPreview.Capture(cabin,cabin.Deck);
                 var fix=session.Origin.GetComponent<SceneSixDoorClearance>();
                 if(fix==null || fix.CorrectedColliders==0)throw new Exception("Scene 6 correction not applied");

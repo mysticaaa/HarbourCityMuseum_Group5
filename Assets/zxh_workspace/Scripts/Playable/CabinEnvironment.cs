@@ -136,6 +136,7 @@ namespace ZxhMuseum
             exit.Button("Audio on / off", () => AudioListener.volume = AudioListener.volume > 0 ? 0 : 1);
             AddTeleportAnchor("Helm approach", new Vector3(0, 0.01f, -1.2f));
             AddTeleportAnchor("Living area approach", new Vector3(0, 0.01f, 0.6f));
+            CabinTeleportSetup.Configure(this);
             // Fixed walls, hull and mast are scenery with collision, not selectable exhibits.
             foreach (var interactable in GetComponentsInChildren<XRBaseInteractable>())
             {

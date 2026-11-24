@@ -138,7 +138,7 @@ namespace ZxhMuseum
         {
             // 0.26m steps with 0.18m risers; original aft deck remains level.
             for(int i=0;i<12;i++)
-                Box("Wheelhouse access step "+i,new Vector3(1.2f,(i+1)*.0875f,-1.4f+i*.26f),new Vector3(1.1f,(i+1)*.175f,.27f),new Color(.30f,.32f,.29f));
+                Box("Wheelhouse access step "+i,new Vector3(1.2f,(i+1)*.0875f,-1.4f+i*.26f),new Vector3(1.1f,(i+1)*.175f,.27f),new Color(.30f,.32f,.29f)).AddComponent<TeleportationArea>();
             for(int side=-1;side<=1;side+=2)
             {
                 var rail = Box("Access stair handrail "+side,new Vector3(1.2f+side*.55f,2.05f,.03f),new Vector3(.045f,3.76f,.045f),Color.gray);
