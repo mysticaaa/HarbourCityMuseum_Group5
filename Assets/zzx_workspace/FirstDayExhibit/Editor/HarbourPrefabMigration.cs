@@ -16,6 +16,18 @@ public static class HarbourPrefabMigration
         UnityEditor.SceneManagement.EditorSceneManager.OpenScene(HarbourTabletopPrototype.TargetScene);
         Migrate();
     }
+    public static void Polish()
+    {
+        var root=PrefabUtility.LoadPrefabContents(Prefab);
+        try
+        {
+            var exhibit=root.GetComponent<HarbourTabletopPrototype>();
+            exhibit.EnsureVisitorPolish(); exhibit.ResetExperience();
+            PrefabUtility.SaveAsPrefabAsset(root,Prefab); AssetDatabase.SaveAssets();
+        }
+        finally { PrefabUtility.UnloadPrefabContents(root); }
+        Debug.Log("Visitor polish saved; scene and public XR files not saved.");
+    }
     public static void Compare()
     {
         UnityEditor.SceneManagement.EditorSceneManager.OpenScene(HarbourTabletopPrototype.TargetScene);

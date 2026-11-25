@@ -16,7 +16,7 @@ namespace ZzxWorkspace.FirstDay
         {
             if(model) throw new InvalidOperationException("Exhibit already generated.");
             manager=sceneManager;
-            Build(); BuildPresentation(); BuildHarbourArt(); BuildLowTable(); ResetExperience();
+            Build(); BuildPresentation(); BuildHarbourArt(); BuildLowTable(); EnsureVisitorPolish(); ResetExperience();
             savedExhibit=true;
         }
         public void BindSavedManager(XRInteractionManager sceneManager)
@@ -43,7 +43,11 @@ namespace ZzxWorkspace.FirstDay
                     case "Select cargo": callback=SelectCrate; break;
                     case "Boat target": callback=Load; break;
                     case "Close document": callback=CloseReader; break;
-                    case "Readable text": callback=()=> { bool show=!documentPicture.activeSelf; documentPicture.SetActive(show); readerBody.gameObject.SetActive(!show); }; break;
+                    case "Readable text": callback=ToggleReadingMode; break;
+                    case "Visitor help": callback=ShowVisitorHelp; break;
+                    case "Reading size": callback=ToggleReadingSize; break;
+                    case "Reading page": callback=NextReadingPage; break;
+                    case "Reading height": callback=ToggleReadingHeight; break;
                 }
                 if(callback==null) { Debug.LogError("Unbound harbour button: "+key,this); continue; }
                 var action=callback;

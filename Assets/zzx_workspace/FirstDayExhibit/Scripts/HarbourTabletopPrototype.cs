@@ -11,7 +11,7 @@ namespace ZzxWorkspace.FirstDay
     public sealed partial class HarbourTabletopPrototype : MonoBehaviour
     {
         public const string TargetScene = "Assets/261122/Museum_261122_1.unity";
-        public enum Stage { Idle, Explore, Choosing, Report, Cargo, Selected, Loading, Letter, Complete }
+        public enum Stage { Idle, Explore, Choosing, Report, Cargo, Selected, Loading, Letter, Complete, Review }
         public Stage CurrentStage { get; private set; }
         [Min(.1f)] public float movementSeconds = .8f;
         [SerializeField] private Transform model, hook, crate, ferry;
@@ -43,6 +43,7 @@ namespace ZzxWorkspace.FirstDay
                         if(candidate.gameObject.scene==gameObject.scene) { manager=candidate; break; }
                 }
                 if(!manager) { Debug.LogError("Saved harbour exhibit needs the scene XRInteractionManager.",this); enabled=false; return; }
+                EnsureVisitorPolish();
                 BindSavedButtons();
                 // Capture editor adjustments as the new reset positions.
                 ferryHome=ferry.localPosition; cargoHome=cargoBoat.localPosition; repairHome=repairBoat.localPosition;
@@ -67,7 +68,7 @@ namespace ZzxWorkspace.FirstDay
             SetText("Introduction", "A first day at the harbour. Help Liang report for work.");
             SetText("Instructions", "POINT + TRIGGER / Explore, check in, then load one crate.");
             SetText("Progress", ""); SetText("Task feedback", "");
-            Build(); BuildPresentation(); BuildHarbourArt(); BuildLowTable(); ResetExperience();
+            Build(); BuildPresentation(); BuildHarbourArt(); BuildLowTable(); EnsureVisitorPolish(); ResetExperience();
         }
         private void SetText(string name, string text)
         { var t = transform.Find(name); if (t && t.TryGetComponent<TMP_Text>(out var label)) label.text = text; }
@@ -159,21 +160,23 @@ namespace ZzxWorkspace.FirstDay
         {
             StopAnimation(); CurrentStage=Stage.Idle; activeArea=-1;
             passRead=letterRead=false;
+            ResetReadingOptions();
             for(int i=0;i<3;i++) { visited[i]=false; SetAreaLabel(i); }
             ResetModels(); CloseReader(); choices.SetActive(false); stamp.SetActive(false);
-            ShowTask("FIRST DAY AT THE HARBOUR", "Select START to help Liang find his workplace.");
+            ShowTask("FIRST DAY AT THE HARBOUR", "Point at START. Press and release the index-finger trigger.");
         }
         private void Say(string text) { message.text=text; }
         private void ShowTask(string heading,string text) { Say("<b>"+heading+"</b>\n"+text); RefreshUI(); }
         private void RefreshUI()
         {
-            mainAction.SetActive(CurrentStage==Stage.Idle || CurrentStage==Stage.Explore || CurrentStage==Stage.Choosing || CurrentStage==Stage.Report);
-            string text=CurrentStage==Stage.Idle ? "START" : CurrentStage==Stage.Report ? "REPORT AT 02" : "FIND WORKPLACE";
+            mainAction.SetActive(CurrentStage==Stage.Idle || CurrentStage==Stage.Explore || CurrentStage==Stage.Choosing || CurrentStage==Stage.Report || CurrentStage==Stage.Review);
+            string text=CurrentStage==Stage.Idle ? "START" : CurrentStage==Stage.Report ? "REPORT AT 02" : CurrentStage==Stage.Review ? "CONTINUE" : "FIND WORKPLACE";
             mainAction.GetComponentInChildren<TMP_Text>().text=text;
             skipAction.SetActive(runningAnimation!=null || formalLoading);
             skipAction.GetComponentInChildren<TMP_Text>().text=formalLoading ? "SKIP LIFT" : "STOP DEMO";
             crateInput.SetActive(runningAnimation==null && (CurrentStage==Stage.Cargo || CurrentStage==Stage.Selected));
             target.SetActive(runningAnimation==null && CurrentStage==Stage.Selected);
+            crateInput.GetComponentInChildren<TMP_Text>(true).text=CurrentStage==Stage.Selected ? "SELECTED" : "CRATE";
             for(int i=0;i<3;i++) areaButtons[i].suggested=activeArea==i || (CurrentStage==Stage.Report && i==1);
         }
         private void Next()
@@ -183,7 +186,12 @@ namespace ZzxWorkspace.FirstDay
             if(CurrentStage==Stage.Idle)
             {
                 CurrentStage=Stage.Explore;
-                ShowTask("HELP LIANG FIND HIS WORKPLACE", "Liang has just arrived in the harbour city. Help him find his assigned workplace. Read both documents.");
+                ShowTask("HELP LIANG FIND HIS WORKPLACE", "Liang has just arrived in the harbour city. Help him find his assigned workplace. Read a clue or explore any area. Choose when ready.");
+            }
+            else if(CurrentStage==Stage.Review)
+            {
+                CurrentStage=Stage.Complete;
+                ShowTask("FIRST TASK COMPLETE", "Loaded: 1 crate. Explore freely, revisit the letter, or restart.");
             }
             else if(CurrentStage==Stage.Report)
             {
@@ -192,16 +200,15 @@ namespace ZzxWorkspace.FirstDay
             }
             else if(CurrentStage==Stage.Explore || CurrentStage==Stage.Choosing)
             {
-                if(!passRead || !letterRead) { ShowTask("LOOK FOR CLUES", "Read both WORK PASS and LETTER HOME. Explore any area you like."); return; }
                 CurrentStage=Stage.Choosing; choices.SetActive(true);
-                ShowTask("FIND LIANG'S WORKPLACE", "Where should Liang report for work?");
+                ShowTask("CHOOSE A WORKPLACE", "Use the clues below. These choices submit your answer.");
             }
         }
         private void ChooseWorkplace(int area)
         {
             if(CurrentStage!=Stage.Choosing) return;
             StopAnimation();
-            if(area==0) ShowTask("FERRY / PASSENGER TRANSPORT", "Check Liang's work pass again. You can explore and choose again.");
+            if(area==0) ShowTask("DEMO: FERRY / PASSENGERS", "Check Liang's work pass again. You can explore and choose again.");
             else if(area==2) ShowTask("REPAIR / BOAT MAINTENANCE", "What kind of work is Liang assigned to? You can choose again.");
             else
             {
@@ -212,7 +219,7 @@ namespace ZzxWorkspace.FirstDay
         private void SetAreaLabel(int area)
         {
             string[] names={"01 FERRY", "02 CARGO", "03 REPAIR"};
-            areaButtons[area].GetComponentInChildren<TMP_Text>().text=names[area]+(visited[area] ? " [SEEN]" : "");
+            areaButtons[area].GetComponentInChildren<TMP_Text>().text=names[area]+"\nWATCH"+(visited[area] ? " [SEEN]" : "");
         }
         private void ResetModels()
         {
@@ -223,7 +230,7 @@ namespace ZzxWorkspace.FirstDay
             if(ferryDoor) { ferryDoor.localRotation=Quaternion.identity; ferryDoor.localPosition=doorClosedPosition; }
             if(ferryDoorFace) ferryDoorFace.sharedMaterial=white;
             if(ferryOpeningFace) ferryOpeningFace.sharedMaterial=white;
-            crate.localPosition=CurrentStage==Stage.Letter || CurrentStage==Stage.Complete ? cargoLanding : crateHome;
+            crate.localPosition=CurrentStage==Stage.Letter || CurrentStage==Stage.Complete || CurrentStage==Stage.Review ? cargoLanding : crateHome;
             crate.GetComponent<Renderer>().sharedMaterial=CurrentStage==Stage.Selected ? cyan : wood;
             hook.localPosition=hookHome;
         }
@@ -235,7 +242,7 @@ namespace ZzxWorkspace.FirstDay
         }
         private void Explore(int area)
         {
-            if(formalLoading) { ShowTask("LOADING IN PROGRESS", "Wait for the lift or select SKIP LIFT, then explore any area."); return; }
+            if(formalLoading || CurrentStage==Stage.Review) return;
             CloseReader(); StopAnimation(); activeArea=area;
             runningAnimation=StartCoroutine(VisitArea(area)); RefreshUI();
         }
@@ -245,7 +252,7 @@ namespace ZzxWorkspace.FirstDay
             yield return null;
             if(area==0)
             {
-                ShowTask("FERRY / PASSENGER TRANSPORT", "Ferries carry passengers. Liang arrived in the city by ferry.");
+                ShowTask("DEMO: FERRY / PASSENGERS", "Ferries carry passengers. Liang arrived in the city by ferry.");
                 ferry.localPosition=ferryHome+Vector3.back*.10f;
                 yield return Move(ferry,ferry.localPosition,ferryHome);
                 yield return SlideDoor(true);
@@ -259,7 +266,7 @@ namespace ZzxWorkspace.FirstDay
             }
             else if(area==1)
             {
-                ShowTask("CARGO / GOODS HANDLING", "Cargo terminals load goods for transport by ship.");
+                ShowTask("DEMO: CARGO / GOODS", "Cargo terminals load goods for transport by ship.");
                 crate.localPosition=crateHome; crate.GetComponent<Renderer>().sharedMaterial=wood;
                 hook.localPosition=hookHome;
                 cargoBoat.localPosition=cargoHome+Vector3.back*.10f;
@@ -269,7 +276,7 @@ namespace ZzxWorkspace.FirstDay
             }
             else
             {
-                ShowTask("REPAIR / INSPECTION AND MAINTENANCE", "Repair berths keep boats in working condition.");
+                ShowTask("DEMO: REPAIR / MAINTENANCE", "Repair berths keep boats in working condition.");
                 yield return Move(repairBoat,repairHome,repairHome+Vector3.forward*.09f);
                 repairMarker.gameObject.SetActive(true); repairTool.gameObject.SetActive(true); repairWorker.SetActive(true);
                 for(float t=0;t<1.6f;t+=Time.deltaTime) { repairTool.localRotation=Quaternion.Euler(0,0,Mathf.Sin(t*12)*25); workerArm.localRotation=Quaternion.Euler(Mathf.Sin(t*12)*30,0,-35); yield return null; }
@@ -280,7 +287,7 @@ namespace ZzxWorkspace.FirstDay
             }
             visited[area]=true; SetAreaLabel(area);
             runningAnimation=null; ResetModels(); RefreshUI();
-            if(CurrentStage==Stage.Explore) Say("<b>EXPLORE AT YOUR OWN PACE</b>\nRead both documents, then select FIND WORKPLACE.");
+            if(CurrentStage==Stage.Explore) Say("<b>EXPLORE AT YOUR OWN PACE</b>\nExplore another area, read a clue, or choose FIND WORKPLACE.");
         }
         private void SelectCrate()
         {
@@ -293,15 +300,15 @@ namespace ZzxWorkspace.FirstDay
         {
             if(CurrentStage!=Stage.Selected) return;
             StopAnimation(); CurrentStage=Stage.Loading; formalLoading=true;
+            ShowTask("HOW THE CARGO IS LOADED", "1. Pick up on shore.\n2. Lift and transfer to the ship.\n3. Lower onto the deck.\nAfter loading, select CONTINUE when ready.");
             runningAnimation=StartCoroutine(Loading()); RefreshUI();
         }
         private IEnumerator Loading()
         {
             yield return null;
-            ShowTask("LOADING THE SHIP", "Shore → lift → ship. The crane carries the goods.");
             yield return CargoMotion();
-            runningAnimation=null; formalLoading=false; CurrentStage=Stage.Letter; ResetModels();
-            ShowTask("WELL DONE!", "Liang found his workplace and completed his first loading task. Open LETTER HOME to reflect.");
+            runningAnimation=null; formalLoading=false; CurrentStage=Stage.Review; ResetModels();
+            RefreshUI(); // Keep the complete loading explanation until CONTINUE is selected.
         }
         private IEnumerator CargoMotion()
         {
@@ -314,7 +321,7 @@ namespace ZzxWorkspace.FirstDay
         private void Skip()
         {
             bool finish=formalLoading; StopAnimation();
-            if(finish) { CurrentStage=Stage.Letter; ResetModels(); ShowTask("LOADING COMPLETE", "Liang's first task is done. Open LETTER HOME to finish."); }
+            if(finish) { CurrentStage=Stage.Review; ResetModels(); RefreshUI(); }
             else ShowTask("DEMO STOPPED", "Replay any area or continue your story.");
         }
         private IEnumerator SlideDoor(bool open)

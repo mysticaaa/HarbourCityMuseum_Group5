@@ -86,8 +86,7 @@ namespace ZzxWorkspace.FirstDay
             BuildDocumentPictures();
             var textToggle=Button("Readable text","IMAGE / TEXT",new Vector3(-.40f,.985f,-.47f),new Vector3(.57f,.12f,.04f),()=>
             {
-                bool showImage=!documentPicture.activeSelf;
-                documentPicture.SetActive(showImage); readerBody.gameObject.SetActive(!showImage);
+                ToggleReadingMode();
             });
             textToggle.transform.SetParent(reader.transform,true);
             // Panel bottom: 1.43 - .51 - .0125 - .22 = .6875, matching the tabletop.
@@ -146,7 +145,7 @@ namespace ZzxWorkspace.FirstDay
         private void ReadLetter() { OpenDocument(false); }
         private void OpenDocument(bool isPass)
         {
-            if(formalLoading) { ShowTask("LOADING IN PROGRESS", "Select SKIP LIFT or wait before opening a document."); return; }
+            if(formalLoading || CurrentStage==Stage.Review) return;
             StopAnimation();
             if(isPass) passRead=true; else letterRead=true;
             readerTitle.text=isPass ? "HARBOUR WORK PASS / No. 0258" : "LETTER HOME";
@@ -154,6 +153,7 @@ namespace ZzxWorkspace.FirstDay
             documentPictureFace.sharedMaterial=isPass ? passPictureMaterial : letterPictureMaterial;
             documentPicture.SetActive(true); readerBody.gameObject.SetActive(false); readerTitle.gameObject.SetActive(false);
             reader.SetActive(true);
+            RefreshReadingControls();
             if(!isPass && CurrentStage==Stage.Letter) CurrentStage=Stage.Complete;
             RefreshUI();
         }
@@ -161,7 +161,7 @@ namespace ZzxWorkspace.FirstDay
         {
             if(reader) reader.SetActive(false);
             if(CurrentStage==Stage.Complete) ShowTask("FIRST DAY COMPLETE", "Explore any area, reopen the documents, or select RESTART.");
-            else if(CurrentStage==Stage.Explore) ShowTask("FOLLOW THE CLUES", passRead && letterRead ? "Choose FIND WORKPLACE when you are ready. Exploring is optional." : "Read WORK PASS and LETTER HOME in either order.");
+            else if(CurrentStage==Stage.Explore) ShowTask("FOLLOW THE CLUES", "Explore, read a clue, or choose FIND WORKPLACE when ready.");
             if(mainAction) RefreshUI();
         }
     }
