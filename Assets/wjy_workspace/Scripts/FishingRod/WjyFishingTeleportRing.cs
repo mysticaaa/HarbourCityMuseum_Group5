@@ -15,7 +15,13 @@ namespace Wjy.Museum
         [SerializeField] private Shader markerShader;
         [SerializeField] private Vector3 localLanding = new Vector3(0f, 0f, 1.25f);
         [SerializeField, Min(.1f)] private float radius = .43f;
+        [SerializeField, Min(0f)] private float arrivalHoldSeconds = .35f;
         [SerializeField] private ExhibitLanding[] exhibitLandings;
+        private static readonly string[] TourOrder =
+        {
+            "First Day Exhibit", "Diving Helmet", "Fishing", "Fishing Boat",
+            "Video Player_1", "Video Player_2", "Video Player_3", "Video Player_4"
+        };
 
         [System.Serializable]
         private struct ExhibitLanding
@@ -29,6 +35,7 @@ namespace Wjy.Museum
 
         private sealed class Destination
         {
+            public string label;
             public Vector3 position;
             public Material material;
             public GameObject marker;
@@ -81,7 +88,9 @@ namespace Wjy.Museum
         private TeleportationProvider provider;
         private Mesh mesh;
         private WjyMuseumPauseMenu menu;
-        private bool useDistantRings;
+        private bool isTourGallery;
+        private int currentStop;
+        private float timeInside;
         private readonly DistantBeam leftBeam = new DistantBeam(), rightBeam = new DistantBeam();
         private bool leftTriggerWasDown = true, rightTriggerWasDown = true;
 
@@ -92,10 +101,10 @@ namespace Wjy.Museum
 
             Physics.SyncTransforms();
             mesh = CreateMarkerMesh();
-            useDistantRings = gameObject.scene.name == "Museum_261122_1";
+            isTourGallery = gameObject.scene.name == "Museum_261122_1";
             var fishingApproach = Vector3.ProjectOnPlane(transform.TransformDirection(localLanding), Vector3.up).normalized;
             AddDestination("Fishing", transform.TransformPoint(localLanding), fishingApproach);
-            if (gameObject.scene.name == "Museum_261122_1" || GetComponent<WjyOceanFishingSession>())
+            if (isTourGallery || GetComponent<WjyOceanFishingSession>())
             {
                 foreach (var root in gameObject.scene.GetRootGameObjects())
                 {
@@ -119,6 +128,7 @@ namespace Wjy.Museum
                 }
             }
 
+            if (isTourGallery && destinations.Count > 0) BeginTour();
             rays = rig.GetComponentsInChildren<XRRayInteractor>(true);
             menu = GetComponent<WjyMuseumPauseMenu>();
             KeepControllerRaysExtended();
@@ -175,16 +185,59 @@ namespace Wjy.Museum
             Debug.LogWarning("[WJY] No clear floor for teleport destination: " + label, this);
         }
 
+        private void BeginTour()
+        {
+            // Keep any newly added exhibits at the end until they receive a place in the tour.
+            int Order(Destination stop)
+            {
+                int index = System.Array.IndexOf(TourOrder, stop.label);
+                return index >= 0 ? index : int.MaxValue;
+            }
+            destinations.Sort((a, b) =>
+            {
+                int order = Order(a).CompareTo(Order(b));
+                return order != 0 ? order : string.CompareOrdinal(a.label, b.label);
+            });
+            currentStop = 0;
+            destinations[0].marker.SetActive(true);
+        }
+
+        private void UpdateArrival()
+        {
+            if (currentStop >= destinations.Count) return;
+            if (!rig || !rig.Camera || !rig.Camera.isActiveAndEnabled || (menu && menu.IsOpen))
+            {
+                timeInside = 0f;
+                return;
+            }
+            var stop = destinations[currentStop];
+            var delta = rig.Camera.transform.position - stop.position;
+            if (delta.y < -.1f || delta.y > 2.7f || delta.x * delta.x + delta.z * delta.z > radius * radius)
+            {
+                timeInside = 0f;
+                return;
+            }
+            timeInside += Time.deltaTime;
+            if (timeInside < arrivalHoldSeconds) return;
+
+            timeInside = 0f;
+            stop.marker.SetActive(false);
+            currentStop++;
+            if (currentStop < destinations.Count) destinations[currentStop].marker.SetActive(true);
+        }
+
         private void OnEnable()
         {
             leftTriggerWasDown = rightTriggerWasDown = true;
-            foreach (var destination in destinations) destination.marker.SetActive(true);
+            for (int i = 0; i < destinations.Count; i++)
+                destinations[i].marker.SetActive(!isTourGallery || i == currentStop);
             if (rays != null) KeepControllerRaysExtended();
         }
 
         private void LateUpdate()
         {
             if (destinations.Count == 0) return;
+            if (isTourGallery) UpdateArrival();
             var left = InputDevices.GetDeviceAtXRNode(XRNode.LeftHand);
             var right = InputDevices.GetDeviceAtXRNode(XRNode.RightHand);
             UpdateAimAndTeleport(left.isValid, IsTriggerDown(left), right.isValid, IsTriggerDown(right));
@@ -203,14 +256,18 @@ namespace Wjy.Museum
             leftTriggerWasDown = !leftConnected || leftPressed;
             rightTriggerWasDown = !rightConnected || rightPressed;
 
-            bool canAim = rod && !rod.HoldingRay && (!menu || !menu.IsOpen);
+            bool canAim = rod && !rod.HoldingRay && (!menu || !menu.IsOpen)
+                && (!isTourGallery || currentStop < destinations.Count);
             var left = FindAimedDestination("Left Controller", canAim && leftConnected, leftBeam);
             var right = FindAimedDestination("Right Controller", canAim && rightConnected, rightBeam);
             var selected = (leftJustPressed ? left : null) ?? (rightJustPressed ? right : null);
             if (selected != null) TryTeleport(selected.position);
             foreach (var destination in destinations)
+            {
+                if (!destination.marker.activeSelf) continue;
                 destination.material.SetColor("_Tint", destination == left || destination == right
                     ? new Color(.55f, 1f, .75f) : new Color(.07f, .8f, 1f));
+            }
         }
 
         private Destination FindAimedDestination(string controller, bool canAim, DistantBeam beam)
@@ -228,6 +285,7 @@ namespace Wjy.Museum
                     if (uiClosest || !hit.HasValue || hit.Value.normal.y < .85f) continue;
                     foreach (var destination in destinations)
                     {
+                        if (!destination.marker.activeSelf) continue;
                         var offset = hit.Value.point - destination.position;
                         if (Mathf.Abs(offset.y) <= .05f && offset.x * offset.x + offset.z * offset.z <= radius * radius)
                         {
@@ -237,7 +295,7 @@ namespace Wjy.Museum
                     }
                     continue;
                 }
-                if (useDistantRings && ray.lineType == XRRayInteractor.LineType.StraightLine &&
+                if (isTourGallery && ray.lineType == XRRayInteractor.LineType.StraightLine &&
                     !ray.IsBlockedByInteractionWithinGroup())
                 {
                     ray.GetLineOriginAndDirection(out var origin, out var direction);
@@ -261,6 +319,7 @@ namespace Wjy.Museum
             float nearestDistance = float.PositiveInfinity;
             foreach (var destination in destinations)
             {
+                if (!destination.marker.activeSelf) continue;
                 // Intersect the visible disc, which sits just above the floor.
                 var center = destination.marker.transform.position;
                 float distance = (center.y - origin.y) / direction.y;
@@ -371,16 +430,19 @@ namespace Wjy.Museum
         private void CreateMarker(string label, Vector3 landing)
         {
             var material = new Material(markerShader);
+            if (isTourGallery) material.SetFloat("_GuideInvRadius", 1f / radius);
             var marker = new GameObject(label + " Teleport Ring");
+            marker.SetActive(!isTourGallery);
             marker.transform.SetParent(transform, false);
             marker.transform.SetPositionAndRotation(landing + Vector3.up * .012f, Quaternion.identity);
             marker.AddComponent<MeshFilter>().sharedMesh = mesh;
             marker.AddComponent<MeshRenderer>().sharedMaterial = material;
-            destinations.Add(new Destination { position = landing, marker = marker, material = material });
+            destinations.Add(new Destination { label = label, position = landing, marker = marker, material = material });
         }
 
         private void OnDisable()
         {
+            timeInside = 0f;
             leftBeam.Hide();
             rightBeam.Hide();
             foreach (var destination in destinations)

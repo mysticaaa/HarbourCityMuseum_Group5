@@ -10918,6 +10918,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5329691700939186257, guid: a61c032ce9154d0fa74f470c4d0cc53a, type: 3}
+      propertyPath: radius
+      value: 0.86
+      objectReference: {fileID: 0}
+    - target: {fileID: 5329691700939186257, guid: a61c032ce9154d0fa74f470c4d0cc53a, type: 3}
       propertyPath: exhibitLandings.Array.data[0].aisleOffset.z
       value: -1.5
       objectReference: {fileID: 0}
@@ -16999,29 +17003,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 100311, guid: ead818cfdcea4cc7ac1668e6a2b5173d, type: 3}
   m_PrefabInstance: {fileID: 710100000014}
   m_PrefabAsset: {fileID: 0}
---- !u!1660057539 &9223372036854775807
-SceneRoots:
-  m_ObjectHideFlags: 0
-  m_Roots:
-  - {fileID: 705507995}
-  - {fileID: 1390136361}
-  - {fileID: 496874955}
-  - {fileID: 462515079}
-  - {fileID: 899313099}
-  - {fileID: 1829269687}
-  - {fileID: 1154313744}
-  - {fileID: 1924447564}
-  - {fileID: 1478389301}
-  - {fileID: 34456439}
-  - {fileID: 758206572}
-  - {fileID: 331021064}
-  - {fileID: 662832099}
-  - {fileID: 1784641831}
-  - {fileID: 1467240307}
-  - {fileID: 209592756}
-  - {fileID: 710100000002}
-  - {fileID: 710100000012}
-  - {fileID: 790210000002}
 --- !u!1 &790210000001
 GameObject:
   m_ObjectHideFlags: 0
@@ -17035,6 +17016,9 @@ GameObject:
   m_Layer: 0
   m_Name: CSY Phase 3 Exhibit Guidance
   m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!4 &790210000002
 Transform:
@@ -17061,11 +17045,34 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d1d20396be265f5a9fe11a0e9066bc06, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   helmetAudio: {fileID: 8300000, guid: 91c4c34d7915460881aeaf6cd9b91e5a, type: 3}
   boatAudio: {fileID: 8300000, guid: 8a5b886d7e4754fc8cfbb3486ceea980, type: 3}
   storyAudio: {fileID: 8300000, guid: 5db1038dcfbe5f44a47e9735eb224321, type: 3}
   helmetCard: {x: -4.65, y: 1.75, z: -0.08}
   boatCard: {x: 3.5, y: 1.75, z: -0.6}
   storyCard: {x: -8.5, y: 1.75, z: -0.25}
+--- !u!1660057539 &9223372036854775807
+SceneRoots:
+  m_ObjectHideFlags: 0
+  m_Roots:
+  - {fileID: 705507995}
+  - {fileID: 1390136361}
+  - {fileID: 496874955}
+  - {fileID: 462515079}
+  - {fileID: 899313099}
+  - {fileID: 1829269687}
+  - {fileID: 1154313744}
+  - {fileID: 1924447564}
+  - {fileID: 1478389301}
+  - {fileID: 34456439}
+  - {fileID: 758206572}
+  - {fileID: 331021064}
+  - {fileID: 662832099}
+  - {fileID: 1784641831}
+  - {fileID: 1467240307}
+  - {fileID: 209592756}
+  - {fileID: 710100000002}
+  - {fileID: 710100000012}
+  - {fileID: 790210000002}

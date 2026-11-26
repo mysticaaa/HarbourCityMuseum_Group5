@@ -14,9 +14,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/zxh_workspace/Scenes/Museum_Vensail_Cabin.unity
     guid: 017f56e509152cb41bbac40b05e93e94
-  - enabled: 1
+  - enabled: 0
     path: Assets/261016/Museum_261016_3.unity
     guid: 6c2b4d3608458a14ebdb4004b2f763f3
+  - enabled: 1
+    path: Assets/261122/Museum_261122_1.unity
+    guid: b6c41b28f8df0b94c88eee6a6129ec5e
   - enabled: 1
     path: Assets/zxh_workspace/Scenes/ShipInterior.unity
     guid: 2ec649a2ef47f0345b0b7025f3ef46f8
