@@ -10,7 +10,7 @@ namespace Wjy.Museum
     public sealed class WjyOceanFishingUI : MonoBehaviour
     {
         private const int RainbowFrames = 48;
-        private const string RodControls = "Hold the <b>Grip</b> button the entire time\nyou’re using the fishing rod.\nUse the <b>Trigger</b> to cast and reel in";
+        private string rodControls = "Hold the <b>Grip</b> button the entire time\nyou’re using the fishing rod.\nUse the <b>Trigger</b> to cast and reel in";
         private static readonly string[] Captions = MakeCaptions("Start the Fishing Experience",
             "On the raft: GRIP to hold\nTRIGGER: hold, swing, release\n<b>", "</b>\n(7 Surprises!)");
         private static readonly string[] GalleryCaptions = MakeCaptions("Discover 7 different catches!", "<b>", "</b>");
@@ -45,6 +45,8 @@ namespace Wjy.Museum
             pedestalLabel = label;
             originalText = label.text;
             var session = exhibitRoot.GetComponent<WjyOceanFishingSession>();
+            if (session && session.PressTriggerToCast)
+                rodControls = "Keep <b>Grip</b> held.\nAim and tap <b>Trigger</b> once to cast.\nTap <b>Trigger</b> again to reel in.";
             if (session && session.UseMuseumExhibitLayout)
             {
                 activeCaptions = GalleryCaptions;
@@ -98,7 +100,7 @@ namespace Wjy.Museum
             // The motion transform contains the shaft and guides. Its grandparent is the
             // stationary exhibit, where the same factory used by the helmet attaches its hint.
             var rod = exhibit.GetComponentInChildren<WjyFishingRodCatchInteraction>();
-            ExhibitInspectionHint.Create(rod.DisplayModel, RodControls);
+            ExhibitInspectionHint.Create(rod.DisplayModel, rodControls);
             rodHint = exhibit.GetComponentInChildren<ExhibitInspectionHint>().transform;
             rodHint.GetComponent<TextMesh>().richText = true;
             rodHint.position -= exhibit.up * .055f;
@@ -129,7 +131,7 @@ namespace Wjy.Museum
             var backing = guide.GetComponent<Image>();
             backing.color = new Color(.02f, .09f, .13f, .94f);
             backing.raycastTarget = false;
-            AddText(guide, "Fishing controls", RodControls, Vector2.zero, new Vector2(462, 145), 28);
+            AddText(guide, "Fishing controls", rodControls, Vector2.zero, new Vector2(462, 145), 28);
             ShowOcean(atSea);
         }
 

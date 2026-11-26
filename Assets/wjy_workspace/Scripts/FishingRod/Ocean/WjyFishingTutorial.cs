@@ -51,7 +51,8 @@ namespace Wjy.Museum
                 if (lesson == Lesson.FirstVisit) lesson = Lesson.Practising;
             }
             // Casting again without using a tutorial button continues as free practice.
-            if (lesson == Lesson.Completed && current == RodState.Charging) lesson = Lesson.Dismissed;
+            if (lesson == Lesson.Completed && (current == RodState.Charging || current == RodState.Flying))
+                lesson = Lesson.Dismissed;
             if (lesson != Lesson.Practising) return;
             if (previous == RodState.Reeling && current == RodState.Held)
                 lesson = Lesson.Completed;
@@ -62,6 +63,12 @@ namespace Wjy.Museum
         private void OnPracticeIssue(WjyFishingRodCatchInteraction.PracticeIssue issue)
         {
             if (lesson != Lesson.Practising) return;
+            if (session.PressTriggerToCast)
+            {
+                if (issue == WjyFishingRodCatchInteraction.PracticeIssue.GripReleased)
+                    correction = "Keep Grip held until you finish reeling in.";
+                return;
+            }
             correction = issue == WjyFishingRodCatchInteraction.PracticeIssue.GripReleased
                 ? "Keep Grip held. Release only Trigger to cast."
                 : "Swing forward before releasing Trigger.";
@@ -100,11 +107,11 @@ namespace Wjy.Museum
                 Present(Step.Available);
         }
 
-        private static Step StepForAction(RodState state)
+        private Step StepForAction(RodState state)
         {
             switch (state)
             {
-                case RodState.Held: return Step.HoldTrigger;
+                case RodState.Held: return session.PressTriggerToCast ? Step.TapTrigger : Step.HoldTrigger;
                 case RodState.Charging: return Step.Swing;
                 case RodState.Flying: return Step.Flying;
                 case RodState.PracticeLanded: return Step.Reel;

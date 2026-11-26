@@ -12,6 +12,8 @@ namespace Wjy.Museum
     {
         [SerializeField] private bool useMuseumExhibitLayout;
         public bool UseMuseumExhibitLayout => useMuseumExhibitLayout;
+        [SerializeField] private bool pressTriggerToCast;
+        public bool PressTriggerToCast => pressTriggerToCast;
 
         private WjyFishingRodCatchInteraction rod;
         private XROrigin rig;

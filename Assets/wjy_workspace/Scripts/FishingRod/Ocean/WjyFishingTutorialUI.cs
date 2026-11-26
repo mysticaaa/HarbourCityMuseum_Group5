@@ -7,7 +7,7 @@ namespace Wjy.Museum
     [DisallowMultipleComponent]
     public sealed class WjyFishingTutorialUI : MonoBehaviour
     {
-        internal enum Step { Hidden, Available, Grip, HoldTrigger, Swing, Flying, Reel, Reeling, Complete }
+        internal enum Step { Hidden, Available, Grip, TapTrigger, HoldTrigger, Swing, Flying, Reel, Reeling, Complete }
 
         internal static readonly Color GripColour = new Color(.38f, .93f, .70f);
         internal static readonly Color TriggerColour = new Color(1f, .77f, .39f);
@@ -84,6 +84,10 @@ namespace Wjy.Museum
                     heading.text = "1 / 3   Pick up the rod";
                     instruction.text = "Point at the rod. Squeeze and hold <b>Grip</b> with your middle finger.";
                     break;
+                case Step.TapTrigger:
+                    heading.text = "2 / 3   Cast";
+                    instruction.text = "Aim your controller. Tap <b>Trigger</b> once with your index finger to cast.";
+                    break;
                 case Step.HoldTrigger:
                     heading.text = "2 / 3   Cast";
                     instruction.text = "Keep <b>Grip</b> held. Hold <b>Trigger</b> with your index finger.";
@@ -109,7 +113,7 @@ namespace Wjy.Museum
                     instruction.text = "Release <b>Grip</b> to choose, or point with your free hand.";
                     break;
             }
-            bool showTrigger = step == Step.HoldTrigger || step == Step.Swing || step == Step.Reel;
+            bool showTrigger = step == Step.TapTrigger || step == Step.HoldTrigger || step == Step.Swing || step == Step.Reel;
             triggerLabel.color = showTrigger ? TriggerColour : Paper;
             gripLabel.color = GripColour;
             diagram.SetPose(showTrigger, step == Step.Swing, leftHand);

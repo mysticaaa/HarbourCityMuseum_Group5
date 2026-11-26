@@ -29,7 +29,7 @@ namespace Wjy.Museum
         internal Transform DisplayModel => visuals?.RodMotion;
         private float waterElapsed, reelTime, nextHaptic;
         private Vector3 waterLanding, reelStart;
-        private Vector3 driftPosition, driftTarget;
+        private Vector3 driftPosition, driftTarget, driftAxis;
         private float biteDeadline, resultDelay;
         private static readonly WjyCatchKind[] CatchKinds = (WjyCatchKind[])System.Enum.GetValues(typeof(WjyCatchKind));
         private readonly List<WjyCatchKind> availableCatches = new List<WjyCatchKind>(CatchKinds);
@@ -63,8 +63,13 @@ namespace Wjy.Museum
             public bool gripWasDown, triggerWasDown;
         }
         private readonly List<Hand> hands = new List<Hand>();
+        private const float SwingWindow = .22f;
         private struct Motion { public float time; public Vector3 velocity; }
         private readonly Queue<Motion> motions = new Queue<Motion>();
+        private bool TapToCast => oceanSession && oceanSession.PressTriggerToCast;
+        private Vector3 flightStart;
+        private string DisplayHint => TapToCast ? "GRIP: pick up\nTRIGGER: tap to cast" : "GRIP: pick up\nTRIGGER: hold, swing, release";
+        private string CastAgainHint => TapToCast ? "Tap TRIGGER to cast again" : "Hold TRIGGER and swing to cast again";
         private WjyFishingRodGrab grab;
         private Rigidbody body;
         private Hand holdingHand;
@@ -124,7 +129,7 @@ namespace Wjy.Museum
             visuals.Create(transform, hook, homeParent, rodTip, lineGuides);
             menu = homeParent ? homeParent.GetComponent<WjyMuseumPauseMenu>() : null;
             CreatePedestalInstructions();
-            SetState(RodState.Display, "GRIP: pick up\nTRIGGER: hold, swing, release");
+            SetState(RodState.Display, DisplayHint);
             RestHook();
             DrawLine();
         }
@@ -230,7 +235,8 @@ namespace Wjy.Museum
             motions.Clear();
             lastTipPosition = rodTip.position;
             lastSampleTime = Time.time;
-            SetState(RodState.Held, "Hold GRIP to inspect\nHold TRIGGER + swing\nRelease TRIGGER to cast");
+            SetState(RodState.Held, TapToCast ? "Keep GRIP held\nAim and tap TRIGGER to cast" :
+                "Hold GRIP to inspect\nHold TRIGGER + swing\nRelease TRIGGER to cast");
             (args.interactorObject as XRBaseControllerInteractor)?.SendHapticImpulse(.2f,.07f);
         }
 
@@ -251,6 +257,7 @@ namespace Wjy.Museum
         private void OnReleased(SelectExitEventArgs args) => BeginReturn();
         private void BeginReturn()
         {
+            if (TapToCast && State == RodState.FishHooked) HasFish = false;
             returningCatch = oceanReveal && HasFish && !catchCommitted;
             returnHookStart = hook.position;
             if (!UsesViewResultPanel) CommitCatch();
@@ -303,6 +310,11 @@ namespace Wjy.Museum
                 visuals.ShowMessage(null);
                 motions.Clear();
                 RestHook();
+                if (TapToCast)
+                {
+                    LaunchTapCast();
+                    return;
+                }
                 SetState(RodState.Charging,"Swing the rod, then\nrelease TRIGGER");
             }
             if (released && State == RodState.Charging)
@@ -317,11 +329,41 @@ namespace Wjy.Museum
             }
         }
 
+        private void LaunchTapCast()
+        {
+            const float range = 6f;
+            var ray = holdingHand.ray;
+            var pointer = ray.rayOriginTransform ? ray.rayOriginTransform : ray.transform;
+            var view = sharedRig.Camera.transform;
+            var heading = Vector3.ProjectOnPlane(pointer.forward, Vector3.up);
+            // A nearly vertical pointer has no reliable bearing on the water.
+            if (heading.sqrMagnitude < .04f) heading = Vector3.ProjectOnPlane(view.forward, Vector3.up);
+            if (heading.sqrMagnitude < .04f) heading = Vector3.Cross(view.right, Vector3.up);
+            heading.Normalize();
+            var start = rodTip.position;
+            var target = start + heading * range;
+            if (IsGalleryPractice)
+            {
+                target.y = sharedRig.transform.position.y;
+            }
+            else
+            {
+                var bounds = waterSurface.bounds;
+                // Even a cast across the deck must reach open water beyond the far rail.
+                float clearOfDeck = Vector3.Dot(bounds.center - start, heading) + 3f;
+                target = start + heading * Mathf.Max(range, clearOfDeck);
+                target.x = Mathf.Clamp(target.x, bounds.min.x + .35f, bounds.max.x - .35f);
+                target.z = Mathf.Clamp(target.z, bounds.min.z + .35f, bounds.max.z - .35f);
+                target.y = SurfaceHeight(target);
+            }
+            BeginFlight(target, .65f);
+        }
+
         private Vector3 RecentSwing()
         {
             Vector3 best = Vector3.zero;
             foreach(var motion in motions)
-                if (Time.time-motion.time <= .22f && motion.velocity.sqrMagnitude>best.sqrMagnitude)
+                if (Time.time-motion.time <= SwingWindow && motion.velocity.sqrMagnitude>best.sqrMagnitude)
                     best = motion.velocity;
             return best;
         }
@@ -348,10 +390,18 @@ namespace Wjy.Museum
                 target.z = Mathf.Clamp(target.z, bounds.min.z + .12f, bounds.max.z - .12f);
                 target.y = bounds.max.y;
             }
-            hook.position = rodTip.position;
+            float duration = Mathf.Clamp(Vector3.Distance(rodTip.position,target)/(3f+speed*.4f),.55f,1.3f);
+            BeginFlight(target, duration);
+        }
+
+        private void BeginFlight(Vector3 target, float duration)
+        {
+            flightStart = rodTip.position;
+            hook.position = flightStart;
             hook.SetParent(homeParent,true); // Flight stays in world space while the hand continues moving.
-            castDuration = Mathf.Clamp(Vector3.Distance(hook.position,target)/(3f+speed*.4f),.55f,1.3f);
-            hookVelocity = (target-hook.position-Physics.gravity*(.5f*castDuration*castDuration))/castDuration;
+            castDuration = duration;
+            hookVelocity = (target - flightStart) / duration;
+            if (!TapToCast) hookVelocity -= Physics.gravity * (.5f * duration);
             flightTime = 0;
             SetState(RodState.Flying,"Casting...");
             holdingHand.ray.SendHapticImpulse(.25f,.07f);
@@ -359,10 +409,11 @@ namespace Wjy.Museum
 
         private Vector3 OpenCastTarget(Vector3 direction, float speed, Vector3 center)
         {
+            float range = Mathf.Clamp(3f + speed * 1.4f, 4f, 12f);
             if (direction.sqrMagnitude < .01f)
                 direction = Vector3.ProjectOnPlane(sharedRig.Camera.transform.forward, Vector3.up).normalized;
             if (direction.sqrMagnitude < .01f) direction = Vector3.forward;
-            var target = rodTip.position + direction * Mathf.Clamp(3f + speed * 1.4f, 4f, 12f);
+            var target = rodTip.position + direction * range;
             // Keep a short cast clear of the raft, or of the visitor during a gallery rehearsal.
             var offset = Vector3.ProjectOnPlane(target - center, Vector3.up);
             return offset.sqrMagnitude < 3.6f * 3.6f ? center + direction * 3.6f : target;
@@ -392,7 +443,7 @@ namespace Wjy.Museum
                 }
                 SetState(HasFish ? RodState.FishHooked : RodState.NoBite,
                     HasFish ? "Fish on!\nTRIGGER: reel in" : "TRIGGER: reel in and try again");
-                visuals.ShowMessage(HasFish ? "Something is hooked! Reel in within 3 seconds!"
+                visuals.ShowMessage(HasFish ? (TapToCast ? "Fish on! Tap Trigger to reel in within 3 seconds!" : "Something is hooked! Reel in within 3 seconds!")
                     : "Fish don\u2019t seem to like you. Try again.");
             }
             if (State == RodState.FishHooked && waterElapsed >= biteDeadline)
@@ -403,8 +454,13 @@ namespace Wjy.Museum
                 visuals.ShowMessage("The fish is gone. Try again!", true);
             }
             var bounds = waterSurface.bounds;
-            driftPosition = Vector3.MoveTowards(driftPosition, driftTarget, .14f * dt);
-            if ((driftPosition - driftTarget).sqrMagnitude < .0025f) ChooseDriftTarget();
+            if (TapToCast)
+                driftPosition = waterLanding + driftAxis * (.24f * Mathf.Sin(waterElapsed * 1.2f));
+            else
+            {
+                driftPosition = Vector3.MoveTowards(driftPosition, driftTarget, .14f * dt);
+                if ((driftPosition - driftTarget).sqrMagnitude < .0025f) ChooseDriftTarget();
+            }
             bool biting = State == RodState.FishHooked;
             Vector3 movement = Vector3.up * (Mathf.Sin(waterElapsed * 2.6f) * .008f);
             if (biting)
@@ -451,8 +507,8 @@ namespace Wjy.Museum
             if (t < 1) return;
             RestHook();
             CommitCatch();
-            SetState(RodState.Held, "Hold TRIGGER and swing to cast again");
-            if (HasFish) visuals.ShowMessage("You caught " + visuals.CatchLabel + "!\nHold TRIGGER and swing to cast again.");
+            SetState(RodState.Held, CastAgainHint);
+            if (HasFish) visuals.ShowMessage("You caught " + visuals.CatchLabel + "!\n" + CastAgainHint + ".");
         }
 
         private void CommitCatch()
@@ -516,17 +572,24 @@ namespace Wjy.Museum
             visuals.ShowMessage(null);
             RestHook();
             DrawLine();
-            SetState(RodState.Display, "GRIP: pick up\nTRIGGER: hold, swing, release");
+            SetState(RodState.Display, DisplayHint);
         }
 
         internal void AdvanceHook(float dt)
         {
             bool practice = IsGalleryPractice;
-            if (practice) dt = Mathf.Min(dt, castDuration - flightTime);
+            bool straight = TapToCast;
+            if (practice || straight) dt = Mathf.Min(dt, castDuration - flightTime);
             Vector3 previous = hook.position;
-            Vector3 next = previous + hookVelocity*dt + Physics.gravity*(.5f*dt*dt);
-            hookVelocity += Physics.gravity*dt;
             flightTime += dt;
+            Vector3 next;
+            if (straight)
+                next = flightStart + hookVelocity * flightTime;
+            else
+            {
+                next = previous + hookVelocity*dt + Physics.gravity*(.5f*dt*dt);
+                hookVelocity += Physics.gravity*dt;
+            }
             if (practice)
             {
                 bool hitSurface = TryPracticeContact(previous, next, out var contact);
@@ -539,6 +602,12 @@ namespace Wjy.Museum
                 }
                 return;
             }
+            if (straight)
+            {
+                hook.position = next;
+                if (flightTime >= castDuration) LandInWater(next);
+                return;
+            }
             var bounds = waterSurface.bounds;
             float startHeight = previous.y - SurfaceHeight(previous);
             float endHeight = next.y - SurfaceHeight(next);
@@ -547,19 +616,7 @@ namespace Wjy.Museum
                 Vector3 crossing = Vector3.Lerp(previous,next,Mathf.InverseLerp(startHeight,endHeight,0f));
                 if (crossing.x>=bounds.min.x && crossing.x<=bounds.max.x && crossing.z>=bounds.min.z && crossing.z<=bounds.max.z)
                 {
-                    waterLanding = new Vector3(crossing.x,SurfaceHeight(crossing),crossing.z);
-                    driftPosition = waterLanding;
-                    ChooseDriftTarget();
-                    waterElapsed = nextHaptic = 0;
-                    resultDelay = Random.Range(1f, 3f); // One fresh wait time per water entry.
-                    HasFish = false;
-                    visuals.Float.position = waterLanding;
-                    visuals.Float.rotation = Quaternion.identity;
-                    visuals.Float.gameObject.SetActive(true);
-                    hook.position = waterLanding + Vector3.down * .22f;
-                    hookVelocity = Vector3.zero;
-                    SetState(RodState.InWater,"Wait for a bite...\nTRIGGER: reel in\nRelease GRIP: return");
-                    holdingHand?.ray.SendHapticImpulse(.12f,.06f);
+                    LandInWater(crossing);
                     return;
                 }
             }
@@ -567,8 +624,30 @@ namespace Wjy.Museum
             if (flightTime>4f || next.y < (oceanReveal ? bounds.max.y - 1f : -1f))
             {
                 RestHook();
-                SetState(RodState.Held,"Hold TRIGGER and swing to cast again");
+                SetState(RodState.Held, CastAgainHint);
             }
+        }
+
+        private void LandInWater(Vector3 landing)
+        {
+            waterLanding = new Vector3(landing.x, SurfaceHeight(landing), landing.z);
+            driftPosition = waterLanding;
+            if (TapToCast)
+            {
+                float angle = (float)driftRandom.NextDouble() * Mathf.PI * 2f;
+                driftAxis = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+            }
+            else ChooseDriftTarget();
+            waterElapsed = nextHaptic = 0;
+            resultDelay = Random.Range(1f, 3f);
+            HasFish = false;
+            visuals.Float.position = waterLanding;
+            visuals.Float.rotation = Quaternion.identity;
+            visuals.Float.gameObject.SetActive(true);
+            hook.position = waterLanding + Vector3.down * .22f;
+            hookVelocity = Vector3.zero;
+            SetState(RodState.InWater,"Wait for a bite...\nTRIGGER: reel in\nRelease GRIP: return");
+            holdingHand?.ray.SendHapticImpulse(.12f,.06f);
         }
 
         private bool TryPracticeContact(Vector3 from, Vector3 to, out RaycastHit closest)
@@ -613,7 +692,7 @@ namespace Wjy.Museum
                 {
                     CommitCatch();
                     returningCatch = false;
-                    SetState(RodState.Display,"GRIP: pick up\nTRIGGER: hold, swing, release");
+                    SetState(RodState.Display, DisplayHint);
                 }
             }
             Vector3 panelOrigin = oceanReveal ? homeParent.position + new Vector3(0,.35f,2.4f)
@@ -621,18 +700,19 @@ namespace Wjy.Museum
             visuals?.Pose(Time.time, State == RodState.FishHooked, panelOrigin, sharedRig.Camera,
                 State == RodState.Held || State == RodState.Display);
             if (State != RodState.Flying && State != RodState.PracticeLanded && !IsInWater && State != RodState.Reeling && !returningCatch) RestHook();
-            if (holdingHand != null)
-            {
-                float dt = Time.time-lastSampleTime;
-                if (dt>.0001f)
-                {
-                    motions.Enqueue(new Motion { time=Time.time, velocity=(rodTip.position-lastTipPosition)/dt });
-                    while(motions.Count>0 && Time.time-motions.Peek().time>.22f) motions.Dequeue();
-                }
-                lastSampleTime = Time.time;
-                lastTipPosition = rodTip.position;
-            }
+            if (holdingHand != null && !TapToCast) SampleTipMotion();
             DrawLine();
+        }
+
+        private void SampleTipMotion()
+        {
+            float now = Time.time;
+            float dt = now - lastSampleTime;
+            if (dt <= .0001f) return;
+            motions.Enqueue(new Motion { time = now, velocity = (rodTip.position - lastTipPosition) / dt });
+            while (motions.Count > 0 && now - motions.Peek().time > SwingWindow) motions.Dequeue();
+            lastSampleTime = now;
+            lastTipPosition = rodTip.position;
         }
 
         internal void DismissBasinMessage() => visuals?.ShowMessage(null);
