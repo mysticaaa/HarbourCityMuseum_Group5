@@ -8,6 +8,7 @@ namespace ZxhMuseum
         public float Heading { get; private set; }
         public float WheelAngle { get; private set; }
         public float Speed { get; private set; }
+        public float YawRate { get; private set; }
         public float Power { get; private set; }
         public int Gear { get; private set; }
         public float Target { get; private set; } = 90;
@@ -41,9 +42,11 @@ namespace ZxhMuseum
         private void Update() => Step(Time.deltaTime);
         public void Step(float seconds)
         {
+            if(float.IsNaN(seconds)||float.IsInfinity(seconds)||seconds<=0)return;
             if (Gear == 0) Power = 0;
             Speed = Mathf.MoveTowards(Speed, Gear * Power * 5, seconds);
-            Heading = Mathf.Repeat(Heading + WheelAngle / 135f * 18 * (Speed / 5f) * seconds, 360);
+            YawRate=Mathf.MoveTowards(YawRate,WheelAngle/135f*18*(Speed/5f),seconds*12);
+            Heading = Mathf.Repeat(Heading + YawRate * seconds, 360);
             if (TaskRunning)
             {
                 HoldTime = Mathf.Abs(Mathf.DeltaAngle(Heading, Target)) <= 10 ? HoldTime + seconds : 0;
@@ -52,7 +55,7 @@ namespace ZxhMuseum
         }
         public void ResetState()
         {
-            Heading = WheelAngle = Speed = Power = HoldTime = 0; Gear = 0;
+            Heading = WheelAngle = Speed = Power = HoldTime = YawRate = 0; Gear = 0;
             TaskRunning = Completed = false; Notice = "Reset. Choose a route.";
         }
     }

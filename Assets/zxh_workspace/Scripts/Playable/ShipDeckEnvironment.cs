@@ -117,6 +117,8 @@ namespace ZxhMuseum
             maker.Part("Door button mounting block",PrimitiveType.Cube,new Vector3(.4f,3.25f,1.66f),new Vector3(.34f,.36f,.44f),metal);
             OuterDoorButton=maker.Button("Door outside button",new Vector3(.4f,3.25f,1.43f),Quaternion.identity,"DOOR\nOPEN / CLOSE",ToggleDoor);
             InnerDoorButton=maker.Button("Door inside button",new Vector3(.4f,3.25f,1.88f),Quaternion.Euler(0,180,0),"DOOR\nOPEN / CLOSE",ToggleDoor);
+            maker.InstructionSign("Deck winch guide",new Vector3(-1.4f,1.7f,-12.1f),Quaternion.Euler(0,180,0),
+                "DECK WINCH","Aim at the winch below\nPress TRIGGER to turn one step",.65f,.27f);
         }
         public void ToggleDoor()
         {

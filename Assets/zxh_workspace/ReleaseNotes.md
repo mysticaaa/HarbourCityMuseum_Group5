@@ -111,3 +111,13 @@
 - 当前会话未提供 Unity MCP 工具，本次通过本机 Unity 批处理完成验证；尚未 push 或重新打包。
 
 发布验证：本次提交包含上述大厅右手摇杆瞬移适配，基于 main bc5b42e。Logs/ZXH-Teleport-Release-Verified.log 的 TELEPORT CONFIG PASS、TELEPORT EXECUTION PASS、DRIVING PASS、DOOR PASS 和三次往返 RELEASE PASS 均通过。此前“尚未 push”为开发阶段状态。本次不包含评估记录、本机设置、旧本地构建脚本或打包产物；未进行真实 Quest 摇杆动作测试，未重新生成 exe。
+
+## 2026-11-26 实体驾驶台与驾驶椅更新
+- 基于队友 main 00c108f 同步后开发，未修改队友公共脚本或场景。
+- 新增 PilotStation：驾驶椅带靠背/扶手/支座，点击坐下并面向船舵，实体 STAND / LEAVE 起身；船舵旁瞬移落点移至椅子侧面。
+- 将漂浮的驾驶/引擎菜单收起，改为实体 AHEAD、STOP / N、ASTERN 和 POWER +/-10% 按钮；档位灯、油门指示与实时航向/节速/动力/舵角仪表。
+- 换向前需先空挡并等待停车，重复选择当前档位不重置油门。成功选择前进或倒车时打开前窗以观察海景，保留手动关窗和动态海景/声音开关。
+- VoyageState 增加渐变转向速率，拒绝无效时间步长并在重置时清零；保留稳定 XR Rig 和外部景物相对运动方案。
+- 新增甲板绞盘操作牌，保留升降杆、舱盖及其他交互说明；调整指南针提示避免遮挡实体按钮。
+- 验证入口 SceneSixDoorValidation.RunLatest，检查实体档位/油门/换向保护、驾驶椅坐下与起身、瞬移地面及原 Provider 位移、站立通行、驾驶与三次往返。日志 Logs/ZXH-PilotStation-Release.log 仅留本机。
+- 已渲染检查驾驶室及驾驶员视角。头显舒适度与操作可读性仍需真实设备验收；本次不重新打包 exe，也不上传匿名评估记录。

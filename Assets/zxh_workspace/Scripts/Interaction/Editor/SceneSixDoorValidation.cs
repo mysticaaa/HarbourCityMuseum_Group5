@@ -119,6 +119,17 @@ public static class SceneSixDoorValidation
                 nav.SetGear(-1);nav.SetPower(.5f);nav.Step(1);driving.Advance(1);
                 if(nav.Speed>=0)throw new Exception("Astern failed");
                 nav.ResetState();driving.ResetFeedback();
+                cabin.Pilot.Ahead.Actuate();
+                if(nav.Gear!=1 || Mathf.Abs(nav.Power-.3f)>.01f)throw new Exception("Physical ahead control failed");
+                if(!cabin.SeaWindow.IsOpen)throw new Exception("Driving must open the forward sea view");
+                cabin.Pilot.MorePower.Actuate();
+                if(Mathf.Abs(nav.Power-.4f)>.01f)throw new Exception("Physical throttle failed");
+                cabin.Pilot.Astern.Actuate();
+                if(nav.Gear!=1)throw new Exception("Gear reversal interlock failed");
+                cabin.Pilot.Neutral.Actuate();nav.Step(6);cabin.Pilot.Astern.Actuate();
+                if(nav.Gear!=-1)throw new Exception("Physical astern failed after neutral");
+                nav.ResetState();driving.ResetFeedback();
+                Debug.Log("ZXH PILOT STATION PASS: physical gear/throttle controls and reverse interlock.");
                 Debug.Log("ZXH DRIVING PASS: ahead, turning, neutral, astern, comfort switch; XR rig unchanged.");
                 cabin.Deck.OuterDoorButton.Actuate();cabin.Deck.AdvanceMotion(3);Physics.SyncTransforms();
                 foreach(float height in new[]{1.8f,2.1f,2.4f})
@@ -142,6 +153,20 @@ public static class SceneSixDoorValidation
                 if(!Physics.Raycast(new Vector3(1.2f,3.1f,.5f),Vector3.forward,out var hit,2) || hit.collider.name!="Sliding wheelhouse door")
                     throw new Exception("Closed door collision lost");
                 Debug.Log("ZXH SCENE 6 DOOR PASS: standing capsules 1.8/2.1/2.4m pass open doorway; floor and closed door retained.");
+                cabin.Pilot.Chair.GetComponent<BoatTriggerAction>().Press();phase=11;return;
+            }
+            if(phase==11 && !session.Busy)
+            {
+                if(!session.Seated)throw new Exception("Pilot seat did not seat visitor");
+                var cabin=UnityEngine.Object.FindObjectOfType<CabinEnvironment>();
+                if(Vector3.Distance(cabin.transform.InverseTransformPoint(session.Origin.Camera.transform.position),new Vector3(0,1.5f,-1.35f))>.05f)
+                    throw new Exception("Pilot seat eye position incorrect");
+                cabin.Pilot.Stand.Actuate();phase=12;return;
+            }
+            if(phase==12 && !session.Busy)
+            {
+                if(session.Seated)throw new Exception("Pilot stand button failed");
+                Debug.Log("ZXH PILOT SEAT PASS: sit facing helm and physical stand button.");
                 session.RequestReturn();phase=2;return;
             }
             if(phase==2 && session!=null && !session.Busy && !session.InCabin)

@@ -9,6 +9,7 @@ namespace ZxhMuseum
     {
         public VoyageState Navigation { get; private set; }
         public BoatDrivingFeedback Driving { get; private set; }
+        public PilotStation Pilot { get; private set; }
         public Transform Needle { get; private set; }
         public WheelRayControl Wheel { get; private set; }
         public int InteractableCount { get; private set; }
@@ -129,12 +130,17 @@ namespace ZxhMuseum
             Deck = deckRoot.AddComponent<ShipDeckEnvironment>();
             Deck.Initialize(this);
             Driving=deckRoot.AddComponent<BoatDrivingFeedback>();Driving.Initialize(Navigation);
+            Pilot=gameObject.AddComponent<PilotStation>();Pilot.Initialize(this);
+            instruments.gameObject.SetActive(false);
+            engineControls.gameObject.SetActive(false);
+            exit.Button("Sea motion on / off",()=>Driving.MotionEnabled=!Driving.MotionEnabled);
+            exit.Button("Engine sound on / off",()=>Driving.SoundEnabled=!Driving.SoundEnabled);
             engineControls.Button("Sea motion on / off",()=>Driving.MotionEnabled=!Driving.MotionEnabled);
             engineControls.Button("Engine sound on / off",()=>Driving.SoundEnabled=!Driving.SoundEnabled);
             exit.Button("Go outside to deck", () => Deck.Travel(true));
             exit.Button("Reset cabin", ResetCabin);
             exit.Button("Audio on / off", () => AudioListener.volume = AudioListener.volume > 0 ? 0 : 1);
-            AddTeleportAnchor("Helm approach", new Vector3(0, 0.01f, -1.2f));
+            AddTeleportAnchor("Helm approach", new Vector3(.8f, 0.01f, -1.2f));
             AddTeleportAnchor("Living area approach", new Vector3(0, 0.01f, 0.6f));
             CabinTeleportSetup.Configure(this);
             // Fixed walls, hull and mast are scenery with collision, not selectable exhibits.
@@ -159,8 +165,8 @@ namespace ZxhMuseum
         {
             maker.InstructionSign("Wheel operation hint",new Vector3(0,1.82f,-2.75f),Quaternion.identity,
                 "STEERING WHEEL","Aim at wheel rim\nHold GRIP and turn",.56f,.28f);
-            maker.InstructionSign("Compass operation hint",new Vector3(-.6f,1.12f,-2.22f),Quaternion.identity,
-                "COMPASS","Aim at brass dial above\nPress TRIGGER to enlarge",.56f,.26f);
+            maker.InstructionSign("Compass operation hint",new Vector3(-.6f,1.5f,-2.62f),Quaternion.identity,
+                "COMPASS","Aim at brass dial below\nPress TRIGGER to enlarge",.48f,.18f);
             maker.InstructionSign("Seat operation hint",new Vector3(1.8f,1.48f,.7f),Quaternion.Euler(0,90,0),
                 "SIT AND REST","Aim at seat + press TRIGGER\nLEAVE SEAT button to stand",.68f,.3f);
             maker.InstructionSign("Right window operation hint",new Vector3(-1.83f,1.86f,.2f),Quaternion.Euler(0,90,0),
