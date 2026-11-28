@@ -12,6 +12,10 @@ namespace CsyMuseum
     public sealed class CSYGalleryGuides : MonoBehaviour
     {
         public AudioClip helmetAudio, boatAudio, storyAudio;
+        [Tooltip("Additional speech sources that E should yield to, in this gallery only.")]
+        public AudioSource[] additionalNarration = new AudioSource[0];
+        [Tooltip("Optional explicit opt-in. Empty means E never changes another module's audio volume.")]
+        public AudioSource[] duckableMusic = new AudioSource[0];
         public Vector3 helmetCard = new Vector3(-4.65f, 1.75f, -.08f);
         public Vector3 boatCard = new Vector3(3.5f, 1.75f, -.6f);
         public Vector3 storyCard = new Vector3(-8.5f, 1.75f, -.25f);
@@ -27,6 +31,8 @@ namespace CsyMuseum
             if (!manager) manager = FindObjectsOfType<XRInteractionManager>().FirstOrDefault(x => x.gameObject.scene == gameObject.scene);
             if (!manager) { Debug.LogError("[CSY E] No gallery interaction manager.", this); enabled = false; return; }
             Coordinator = gameObject.AddComponent<CSYGuideCoordinator>(); Coordinator.visitorCamera = rig.Camera;
+            Coordinator.additionalNarration = additionalNarration;
+            Coordinator.duckableMusic = duckableMusic;
             var helmet = FindObjectsOfType<HelmetHandInspection>().FirstOrDefault(x => x.gameObject.scene == gameObject.scene);
             var boat = FindObjectsOfType<VensailCabinEntry>().FirstOrDefault(x => x.gameObject.scene == gameObject.scene);
             var story = FindObjectsOfType<HarbourTabletopPrototype>().FirstOrDefault(x => x.gameObject.scene == gameObject.scene);

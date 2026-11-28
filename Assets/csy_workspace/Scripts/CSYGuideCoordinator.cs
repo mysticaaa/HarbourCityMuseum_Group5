@@ -11,48 +11,73 @@ namespace CsyMuseum
     {
         public Camera visitorCamera;
         public bool automaticAudio = true;
+        public AudioSource[] additionalNarration = new AudioSource[0];
+        public AudioSource[] duckableMusic = new AudioSource[0];
         public readonly List<CSYExhibitGuide> Guides = new List<CSYExhibitGuide>();
         public CSYExhibitGuide Speaking { get; private set; }
         public bool GalleryAvailable { get; private set; }
         private AudioSource voice;
         private CSYExhibitGuide focus;
-        private float focusSince;
-        private bool foreground = true;
+        private float focusSince, nextScan;
+        private bool foreground = true, paused;
         private readonly Dictionary<AudioSource, float> ducked = new Dictionary<AudioSource, float>();
-        private AudioSource[] otherAudio;
+        private NarrationPlayer[] narrators;
         private VideoPlayer[] videos;
         private WjyMuseumPauseMenu[] menus;
         private VensailCabinEntry[] boarding;
         private MuseumQuickMenu[] quickMenus;
         private MuseumControllerTutorial[] tutorials;
-        private float nextScan;
+        private bool Muted => AudioListener.pause || AudioListener.volume <= .001f;
+
         private void Awake()
         {
             voice = gameObject.AddComponent<AudioSource>(); voice.playOnAwake = false;
             voice.loop = false; voice.spatialBlend = 0; voice.volume = .7f;
         }
-        private void Update()
+        private void RefreshSources(bool force = false)
+        {
+            if (!force && menus != null && Time.unscaledTime < nextScan) return;
+            narrators = FindObjectsOfType<NarrationPlayer>(); videos = FindObjectsOfType<VideoPlayer>();
+            menus = FindObjectsOfType<WjyMuseumPauseMenu>(true);
+            boarding = FindObjectsOfType<VensailCabinEntry>(true);
+            quickMenus = FindObjectsOfType<MuseumQuickMenu>(true);
+            tutorials = FindObjectsOfType<MuseumControllerTutorial>(true);
+            nextScan = Time.unscaledTime + 1;
+        }
+        private bool AtGallery()
         {
             if (!visitorCamera || !visitorCamera.isActiveAndEnabled) visitorCamera = Camera.main;
             var session = MuseumSession.Instance;
-            if (menus == null) menus = FindObjectsOfType<WjyMuseumPauseMenu>();
-            if (boarding == null) boarding = FindObjectsOfType<VensailCabinEntry>();
-            if (quickMenus == null) quickMenus = FindObjectsOfType<MuseumQuickMenu>(true);
-            if (tutorials == null) tutorials = FindObjectsOfType<MuseumControllerTutorial>(true);
-            bool modal = false;
-            foreach (var menu in menus) if (menu && menu.IsOpen) modal = true;
-            foreach (var entry in boarding) if (entry && entry.ConfirmationOpen) modal = true;
-            foreach (var menu in quickMenus) if (menu && menu.gameObject.scene == gameObject.scene && menu.IsOpen) modal = true;
-            foreach (var tutorial in tutorials) if (tutorial && tutorial.gameObject.scene == gameObject.scene && tutorial.isActiveAndEnabled) modal = true;
-            bool atGallery = foreground && visitorCamera && visitorCamera.isActiveAndEnabled
+            return visitorCamera && visitorCamera.isActiveAndEnabled
                 && visitorCamera.gameObject.scene == gameObject.scene
                 && SceneManager.GetActiveScene() == gameObject.scene
-                && (!session || (!session.Busy && !session.InCabin));
-            GalleryAvailable = atGallery && !modal;
-            if (Time.unscaledTime >= nextScan)
-            {
-                otherAudio = FindObjectsOfType<AudioSource>(); videos = FindObjectsOfType<VideoPlayer>(); nextScan = Time.unscaledTime + 1;
-            }
+                && (!session || session.gameObject.scene != gameObject.scene || (!session.Busy && !session.InCabin));
+        }
+        private bool ModalOpen()
+        {
+            RefreshSources();
+            foreach (var menu in menus) if (menu && menu.gameObject.scene == gameObject.scene && menu.IsOpen) return true;
+            foreach (var entry in boarding) if (entry && entry.gameObject.scene == gameObject.scene && entry.ConfirmationOpen) return true;
+            foreach (var menu in quickMenus) if (menu && menu.gameObject.scene == gameObject.scene && menu.IsOpen) return true;
+            foreach (var tutorial in tutorials) if (tutorial && tutorial.gameObject.scene == gameObject.scene && tutorial.isActiveAndEnabled) return true;
+            return false;
+        }
+
+        // Also checked at callback time; colliders alone cannot guard stale hover/click events.
+        public bool CanInteract(CSYExhibitGuide guide)
+        {
+            if (!isActiveAndEnabled || !foreground || paused || !guide || !guide.isActiveAndEnabled
+                || guide.Coordinator != this || !AtGallery() || ModalOpen() || !guide.Visit.Inside) return false;
+            Vector3 delta = visitorCamera.transform.position - guide.RangePosition;
+            return new Vector2(delta.x, delta.z).magnitude <= Mathf.Max(guide.enterRadius, guide.exitRadius)
+                && Mathf.Abs(delta.y) <= guide.maxVertical;
+        }
+
+        private void Update()
+        {
+            RefreshSources();
+            bool atGallery = AtGallery();
+            GalleryAvailable = atGallery && foreground && !paused && !ModalOpen();
             bool occupied = MediaPlaying();
             CSYExhibitGuide nearest = null; float best = float.MaxValue;
             foreach (var guide in Guides)
@@ -62,11 +87,11 @@ namespace CsyMuseum
                 float horizontal = new Vector2(delta.x, delta.z).magnitude;
                 bool available = atGallery && guide.isActiveAndEnabled;
                 guide.Visit.Update(available, horizontal, Mathf.Abs(delta.y), guide.enterRadius, guide.exitRadius, guide.maxVertical, Time.unscaledTime);
+                if (!guide.Visit.Inside && Speaking != guide) guide.SetAudioState(CSYGuideAudioState.None);
                 guide.SetPresentation(GalleryAvailable && available && horizontal < 5, visitorCamera);
                 if (!GalleryAvailable || !guide.Visit.Inside) continue;
                 Vector3 toGuide = guide.RangePosition - visitorCamera.transform.position; toGuide.y = 0;
                 Vector3 forward = visitorCamera.transform.forward; forward.y = 0;
-                // Intent gate: looking within 60 degrees, not merely passing alongside a station.
                 if (Vector3.Dot(toGuide.normalized, forward.normalized) < .5f) continue;
                 Vector3 sight = guide.RangePosition - visitorCamera.transform.position;
                 if (Physics.Raycast(visitorCamera.transform.position, sight.normalized, out var hit, sight.magnitude, ~0, QueryTriggerInteraction.Ignore)
@@ -75,55 +100,83 @@ namespace CsyMuseum
                 if (horizontal < best) { best = horizontal; nearest = guide; }
             }
             if (focus != nearest) { focus = nearest; focusSince = Time.unscaledTime; }
-            if (Speaking && (!GalleryAvailable || !Speaking.Visit.Inside || occupied)) StopFor(Speaking);
-            if (Speaking && !voice.isPlaying) { Speaking = null; RestoreMusic(); }
-            if (GalleryAvailable && automaticAudio && !occupied && !Speaking && focus
+            if (Speaking && (!GalleryAvailable || !Speaking.Visit.Inside || occupied || Muted)) EndSpeech(CSYGuideAudioState.Interrupted);
+            if (Speaking && !voice.isPlaying) EndSpeech(CSYGuideAudioState.Finished);
+            if (GalleryAvailable && automaticAudio && !Muted && !occupied && !Speaking && focus
                 && focus.Visit.Ready(Time.unscaledTime, focus.dwellSeconds)
                 && Time.unscaledTime - focusSince >= focus.dwellSeconds) Replay(focus);
             foreach (var guide in Guides)
-                if (guide) guide.ShowState(Speaking == guide ? "Playing introduction - Stop skips audio."
-                    : occupied ? "Video or another narration is playing. Read here or replay later."
-                    : automaticAudio ? "Auto audio on. Replay to hear again; Stop to skip."
-                    : "Auto audio off. Read here or select Replay.");
+                if (guide)
+                {
+                    var controls = CSYGuidePresentation.Build(GalleryAvailable && guide.isActiveAndEnabled,
+                        guide.Visit.Inside, guide.narration, occupied, automaticAudio, Muted, guide.AudioState);
+                    guide.ShowControls(controls, CanInteract(guide));
+                }
         }
+
         private bool MediaPlaying()
         {
-            if (videos != null) foreach (var video in videos) if (video && video.isPlaying) return true;
-            if (otherAudio != null) foreach (var source in otherAudio)
-                if (source && source != voice && source.isPlaying && !source.loop) return true;
+            if (videos != null) foreach (var video in videos)
+                if (video && video.gameObject.scene == gameObject.scene && video.isPlaying) return true;
+            if (narrators != null) foreach (var narrator in narrators)
+                if (narrator && Blocks(narrator.GetComponent<AudioSource>(), true, false)) return true;
+            if (additionalNarration != null) foreach (var source in additionalNarration)
+                if (Blocks(source, false, true)) return true;
             return false;
         }
+        private bool Blocks(AudioSource source, bool known, bool explicitlyRegistered)
+        {
+            return source && CSYGuideAudioRules.BlocksSpeech(source.gameObject.scene == gameObject.scene,
+                source.isPlaying, known, explicitlyRegistered, source == voice);
+        }
+
         public void Replay(CSYExhibitGuide guide)
         {
-            if (!GalleryAvailable || !guide || !guide.Visit.Inside || !guide.narration || MediaPlaying()) return;
-            StopAll(); Speaking = guide; guide.Visit.MarkPlayed();
-            if (otherAudio != null) foreach (var source in otherAudio)
-                if (source && source != voice && source.isPlaying && source.loop)
+            if (!CanInteract(guide) || !guide.narration || Muted) return;
+            RefreshSources(true);
+            if (MediaPlaying()) return;
+            EndSpeech(CSYGuideAudioState.Interrupted);
+            Speaking = guide; guide.Visit.MarkPlayed(); guide.SetAudioState(CSYGuideAudioState.Playing);
+            // No implicit global ducking: only explicitly opted-in, same-gallery music.
+            if (duckableMusic != null) foreach (var source in duckableMusic)
+                if (source && !ducked.ContainsKey(source)
+                    && CSYGuideAudioRules.MayDuck(source.gameObject.scene == gameObject.scene, source.isPlaying, source.loop, true, source == voice))
                 { ducked[source] = source.volume; source.volume *= .25f; }
             voice.clip = guide.narration; voice.Play();
         }
         public void StopFor(CSYExhibitGuide guide)
         {
-            if (guide) guide.Visit.MarkPlayed();
-            if (Speaking == guide) StopAll();
+            if (!CanInteract(guide)) return;
+            if (guide) { guide.Visit.MarkPlayed(); guide.SetAudioState(CSYGuideAudioState.Skipped); }
+            if (Speaking == guide) EndSpeech(CSYGuideAudioState.Skipped);
         }
+        internal void GuideDisabled(CSYExhibitGuide guide)
+        { if (Speaking == guide) EndSpeech(CSYGuideAudioState.Interrupted); }
         public void ToggleAutomatic()
         {
-            automaticAudio = !automaticAudio; StopAll();
-            foreach (var guide in Guides) if (guide && guide.Visit.Inside) guide.Visit.MarkPlayed();
+            if (!isActiveAndEnabled || !foreground || paused || !AtGallery() || ModalOpen()) return;
+            automaticAudio = !automaticAudio; EndSpeech(CSYGuideAudioState.Skipped);
+            foreach (var guide in Guides) if (guide && guide.Visit.Inside)
+            { guide.Visit.MarkPlayed(); guide.SetAudioState(CSYGuideAudioState.Skipped); }
         }
-        private void StopAll() { if (voice) voice.Stop(); Speaking = null; RestoreMusic(); }
+        private void EndSpeech(CSYGuideAudioState state)
+        {
+            if (Speaking) Speaking.SetAudioState(state);
+            if (voice) voice.Stop(); Speaking = null; RestoreMusic();
+        }
         private void RestoreMusic()
         {
-            foreach (var pair in ducked) if (pair.Key && Mathf.Approximately(pair.Key.volume, pair.Value * .25f)) pair.Key.volume = pair.Value;
+            foreach (var pair in ducked)
+                if (pair.Key && CSYGuideAudioRules.CanRestore(pair.Key.volume, pair.Value)) pair.Key.volume = pair.Value;
             ducked.Clear();
         }
-        private void OnApplicationFocus(bool value) { foreground = value; if (!value) StopAll(); }
-        private void OnApplicationPause(bool value) { if (value) StopAll(); }
+        private void OnApplicationFocus(bool value) { foreground = value; if (!value) EndSpeech(CSYGuideAudioState.Interrupted); }
+        private void OnApplicationPause(bool value) { paused = value; if (value) EndSpeech(CSYGuideAudioState.Interrupted); }
         private void OnDisable()
         {
-            StopAll();
-            foreach (var guide in Guides) if (guide) { guide.Visit.Reset(); guide.SetPresentation(false, visitorCamera); }
+            EndSpeech(CSYGuideAudioState.Interrupted); GalleryAvailable = false; focus = null;
+            foreach (var guide in Guides) if (guide)
+            { guide.Visit.Reset(); guide.SetAudioState(CSYGuideAudioState.None); guide.SetPresentation(false, visitorCamera); }
         }
     }
 }

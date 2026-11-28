@@ -1,0 +1,48 @@
+Phase 4 E stability and presentation changes
+Date: 28 November 2026 (Asia/Shanghai)
+Base: main e1fa231
+Scope: E-owned scripts and tests only. No new interaction exhibit or fishing feature.
+No presentation script, slides or video was produced in this change.
+
+1. Clear controls
+Cards show Listen before first use and Replay afterwards, explicit Auto audio: ON/OFF,
+and distinct playing, stopped, interrupted, completed, media-busy and muted states.
+When outside the visit region the message asks the visitor to move closer; unavailable
+buttons are disabled rather than silently accepting clicks. Text remains available
+without narration. Temporary focus/menu interruption does not reset a visit and
+therefore does not unexpectedly restart the same introduction.
+
+2. Local audio ownership
+Ordinary sound effects are no longer classified as narration. E yields to video and
+known NarrationPlayer speech in the same gallery, plus explicitly registered speech
+sources. Additional speech can be configured on CSYGalleryGuides.additionalNarration.
+E does not stop or pause those sources; it stops only its own AudioSource.
+
+duckableMusic defaults to an empty list. Consequently E changes no other module's
+volume by default. If an owner explicitly supplies same-gallery looping music,
+duck/restore affects only that list. A later volume adjustment by the owner is respected.
+Sounds in other scenes are neither speech blockers nor duck targets.
+
+3. Input and lifecycle protection
+Card callbacks recheck visible/enabled state, actual range and current modal state.
+Helmet answers/reset recheck the same context. Menu/tutorial blocking is checked at
+callback time, not only during collider updates. Disabled E cards hide their Canvas
+and colliders immediately. Pausing or losing focus stops E speech and restores only
+the volumes E actually adjusted.
+
+Verification
+Pure control-state and audio-permission checks are available under CSY Tools > Phase 4.
+The existing visit and observation checks remain under Phase 3. Full project static
+compilation passed after these changes (122 runtime sources; 36 Editor sources).
+Pure checks passed: 1423 control-state assertions, 91 audio ownership assertions,
+and the existing 72 visit/task assertions. These are software checks, not user counts
+or proof of perceived usability. Existing upstream compiler warnings remain.
+
+Before using the updated version for a client recording, inspect the actual E cards
+in the intended build: readable state, enabled/disabled appearance, mouse/XR activation,
+menu occlusion, short sound effect during speech, video interruption and audio replay.
+This is a runtime regression checklist, not a claim that filming or user testing occurred.
+The full Phase 4 deliverable still depends on the group's actual videos, slides and
+documented presentation contributions; code changes alone do not satisfy that rubric.
+
+Unity validation attempt: Editor startup succeeded, but the fresh worktree remained at its initial Library/asset-database rebuild without reaching the requested validation method. The task-owned batch process was stopped. This iteration therefore has no new successful Unity Play/render or hardware result; the completed P3 user-reported checks are a separate record.

@@ -15,7 +15,7 @@ Three configurable stations cover the active helmet, active boarding boat and Fi
 
 The coordinator binds the active Hands Rig camera, not the inactive legacy rig. It chooses the nearest eligible station in the visitor's forward 60-degree cone with an unobstructed sightline, requires a 1.2-second dwell, uses separate entry/exit thresholds, and plays once per visit. Leaving the region resets the visit. A fixed region stays at the display when the helmet is held.
 
-Cards expose **Replay**, **Stop**, and **Auto audio on / off** with the existing physical XRI ray/Activate and direct mouse-ray fallback. Automatic speech waits during video playback or other non-looping audio. While E speaks, looping sources are temporarily reduced to one quarter and then restored. E stops when the gallery is inactive, during boat entry/cabin sessions, loss of application focus, or disable. The active-scene gate handles transitions without changing teammates' transition code. Text remains an alternative when audio is off or occupied.
+Cards expose **Replay**, **Stop**, and **Auto audio on / off** with the existing physical XRI ray/Activate and direct mouse-ray fallback. Automatic speech waits during video playback or other non-looping audio. P4 refinement limits optional volume reduction to explicitly opted-in same-gallery music; the default empty list leaves other modules untouched. E stops when the gallery is inactive, during boat entry/cabin sessions, loss of application focus, or disable. The active-scene gate handles transitions without changing teammates' transition code. Text remains an alternative when audio is off or occupied.
 
 Cards share a fixed high-contrast style, 28-40 point UI fonts at a fixed world scale and top height of 1.75 m. Their positions are configurable on the adapter. They do not follow or cover the held helmet. The card does not use shrinking auto-size to fit long text; runtime checks flag content overflow. The tiny legacy hints are suppressed only for E's bound models, using a small `ExhibitInspectionHint.Source` association; disabling E restores their prior activation state.
 
@@ -51,3 +51,7 @@ The review copies deliberately retain the upstream scene name in separate direct
 ## Main integration
 
 The E adapter is now installed in Assets/261122/Museum_261122_1.unity. Both review copies were refreshed from f22485b before adding E, retaining the new tutorial and XR bindings. E hides its controls and stops narration while the six-step tutorial or quick menu is displayed, without resetting the current visit. MuseumQuickMenu exposes one read-only IsOpen property for this purpose. Existing fishing gameplay and layout remain unchanged. Build Settings were not changed; select the agreed release entry explicitly.
+
+## Phase 4 refinement
+
+See PHASE4_E_CHANGES.txt for local audio ownership, visible control states and callback guards. New policy checks are under CSY Tools > Phase 4. This refinement does not create presentation materials.
